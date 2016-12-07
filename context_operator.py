@@ -23,12 +23,12 @@ class ContextOperator():
         immediately creates such. To optimize speed and volume of the occupied memory
         the contexts are divided into semi-contexts as several contexts can contain
         the same facts set in its left and right parts.
-         
+
         @param newContextsList:         list of potentially new contexts
-        
+
         @param zerolevel:               flag indicating the context type in
                                         transmitted list
-                                          
+
         @return :   depending on the type of  potentially new context transmitted as
                     an input parameters the function returns either:
                     а) flag indicating that the transmitted zero-level context is
@@ -37,12 +37,12 @@ class ContextOperator():
                     b) number of the really new contexts that have been saved to the
                     context memory.
 
-        
+
         Функция, которая по полному списку фактов определяет существует ли уже в памяти
         данный контекст и в случае, если такого контекста нет - сразу создаёт его.
         Для оптимизации быстродействия и объема занимаемой оперативной памяти контексты
         разделены на полуконтексты, в связи с тем, что сразу несколько контекстов могут
-        содержать одинаковый набор фактов в левой или правой части. 
+        содержать одинаковый набор фактов в левой или правой части.
 
         @param newContextsList:         список потенциально новых контекстов
 
@@ -52,22 +52,22 @@ class ContextOperator():
         @return :   в зависимости от того, какой тип потенциально новых контекстов был
                     передан в качестве входных параметров, функция возвращает либо:
                     а) флаг, указывающий на то, что переданный контекст нулевого
-                    уровня является новым/существующим, 
+                    уровня является новым/существующим,
                     либо:
                     б) количество контекстов, которые действительно оказались новыми
-                    и были сохранены в памяти контекстов.   
-        
+                    и были сохранены в памяти контекстов.
+
         """
 
 
         numAddedContexts = 0
-        
+
         for leftFacts, rightFacts in newContextsList :
 
             leftHash = leftFacts.__hash__()
             rightHash = rightFacts.__hash__()
-                
-            nextLeftSemiContextNumber = len(self.semiContextDics[0]) 
+
+            nextLeftSemiContextNumber = len(self.semiContextDics[0])
             leftSemiContextID = self.semiContextDics[0].setdefault(leftHash, nextLeftSemiContextNumber)
             if leftSemiContextID == nextLeftSemiContextNumber :
                 leftSemiContextValues = [[] , len(leftFacts), 0, {}]
@@ -75,7 +75,7 @@ class ContextOperator():
                 for fact in leftFacts :
                     semiContextList = self.factsDics[0].setdefault(fact, [])
                     semiContextList.append(leftSemiContextValues)
-                
+
             nextRightSemiContextNumber = len(self.semiContextDics[1])
             rightSemiContextID = self.semiContextDics[1].setdefault(rightHash, nextRightSemiContextNumber)
             if  rightSemiContextID == nextRightSemiContextNumber :
@@ -84,10 +84,10 @@ class ContextOperator():
                 for fact in rightFacts :
                     semiContextList = self.factsDics[1].setdefault(fact, [])
                     semiContextList.append(rightSemiContextValues)
-            
-            nextFreeContextIDNumber = len(self.contextsValuesList) 
+
+            nextFreeContextIDNumber = len(self.contextsValuesList)
             contextID = self.semiContextValuesLists[0][leftSemiContextID][3].setdefault(rightSemiContextID, nextFreeContextIDNumber)
-            
+
             if contextID == nextFreeContextIDNumber :
                 numAddedContexts += 1
                 contextValues = [0, 0, 0, rightFacts, zerolevel, leftHash, rightHash]
@@ -95,7 +95,7 @@ class ContextOperator():
                 self.contextsValuesList.append(contextValues)
                 if zerolevel :
                     self.newContextID = contextID
-                    return True 
+                    return True
             else :
                 contextValues = self.contextsValuesList[contextID]
 
@@ -117,7 +117,7 @@ class ContextOperator():
             maxPredWeight = 0.0
             newPredictions = set()
             predictionContexts = []
-            
+
         for semiContextValues in self.crossedSemiContextsLists[leftOrRight] :
             semiContextValues[0] = []
             semiContextValues[2] = 0
@@ -125,7 +125,7 @@ class ContextOperator():
         for fact in factsList :
             for semiContextValues in self.factsDics[leftOrRight].get(fact, []) :
                 semiContextValues[0].append(fact)
-           
+
         newCrossedValues = []
 
         for semiContextValues in self.semiContextValuesLists[leftOrRight] :
@@ -136,13 +136,13 @@ class ContextOperator():
                 if leftOrRight == 0 and semiContextValues[1] == lenSemiContextValues0 :
                     for contextID in semiContextValues[3].itervalues():
                         contextValues = self.contextsValuesList[contextID]
-                        
+
                         currPredWeight = contextValues[1] / float(contextValues[0]) if contextValues[0] > 0 else 0.0
 
                         if currPredWeight >  maxPredWeight :
                             maxPredWeight = currPredWeight
                             predictionContexts = [contextValues]
-                            
+
                         elif currPredWeight ==  maxPredWeight :
                             predictionContexts.append(contextValues)
 
@@ -150,17 +150,17 @@ class ContextOperator():
 
         if  leftOrRight :
             return self.updateContextsAndGetActive(newContextFlag)
-            
+
         else :
             [ newPredictions.update(contextValues[3]) for contextValues in predictionContexts ]
 
-            return numNewContexts, newPredictions 
+            return numNewContexts, newPredictions
 
 
     def updateContextsAndGetActive(self, newContextFlag):
         """
         This function reviews the list of previously selected left semi-contexts,
-        updates the prediction results value of all contexts, including left 
+        updates the prediction results value of all contexts, including left
         semi-contexts, creates the list of potentially new contexts resulted from
         intersection between zero-level contexts, determines the contexts that
         coincide with the input data and require activation, prepares the values
@@ -171,10 +171,10 @@ class ContextOperator():
                                         step, which means that all contexts
                                         already exist and there is no need to
                                         create new ones.
-        
+
         @return activeContexts:         list of identifiers of the contexts which
                                         completely coincide with the input stream,
-                                        should be considered active and be 
+                                        should be considered active and be
                                         recorded to the input stream of “neurons”
 
         @return potentialNewContextsLists:  list of contexts based on intersection
@@ -189,18 +189,18 @@ class ContextOperator():
         которых являются данные левые полуконтексты, создаёт список контекстов,
         которые являются результатом пересечения контекстов нулевого уровня и могут
         быть новыми, определяет какие контексты полностью совпали входными данными и
-        их надо активировать, подготавливает показатели для расчета величины аномалии. 
+        их надо активировать, подготавливает показатели для расчета величины аномалии.
 
 
         @param newContextsFlag:         флаг, указывающий на то, что на текущем шаге не был
                                         записан новый контекст нулевого уровня, а значит не
                                         нужно создавать путем пересечения новые контексты,
                                         т.к. они все уже созданы ранее
-                                                 
-        @return activeContexts:         список индентификаторов контекстов, полностью 
+
+        @return activeContexts:         список индентификаторов контекстов, полностью
                                         совпавших с входным потоком, которые нужно считать
                                         активными и записать во входной поток "нейроны"
-                                        
+
         @return potentialNewContextsLists:    список контекстов, созданных на основе
                                         пересечения левых и правых полуконтекстов нулевого
                                         уровня, и потенциально являющихся новыми
@@ -210,37 +210,37 @@ class ContextOperator():
 
         activeContexts = []
         numSelectedContext = 0
-        
+
         potentialNewContextList = []
 
         for leftSemiContextValues in self.crossedSemiContextsLists[0] :
-        
+
             for rightSemiContextID, contextID in leftSemiContextValues[3].iteritems() :
 
                 if self.newContextID != contextID :
 
                     contextValues = self.contextsValuesList[contextID]
                     rightSemiContextValue0,  rightSemiContextValue1, rightSemiContextValue2 = self.semiContextValuesLists[1][rightSemiContextID]
-                    
-                    if leftSemiContextValues[1] == leftSemiContextValues[2] :           
+
+                    if leftSemiContextValues[1] == leftSemiContextValues[2] :
 
                         numSelectedContext += 1
                         contextValues[0] += rightSemiContextValue1
-                        
+
                         if rightSemiContextValue2 > 0 :
                             contextValues[1] += rightSemiContextValue2
-                                
+
                             if rightSemiContextValue1 == rightSemiContextValue2 :
                                 contextValues[2] += 1
                                 activeContexts.append([contextID, contextValues[2], contextValues[5], contextValues[6]])
 
                             elif contextValues[4] and newContextFlag and leftSemiContextValues[2] <= self.maxLeftSemiContextsLenght :
                                 potentialNewContextList.append(tuple([tuple(leftSemiContextValues[0]), tuple(rightSemiContextValue0)]))
-                        
+
 
                     elif contextValues[4] and newContextFlag and rightSemiContextValue2 > 0 and leftSemiContextValues[2] <= self.maxLeftSemiContextsLenght :
                         potentialNewContextList.append(tuple([tuple(leftSemiContextValues[0]), tuple(rightSemiContextValue0)]))
 
         self.newContextID = False
-        
+
         return activeContexts, numSelectedContext, potentialNewContextList
