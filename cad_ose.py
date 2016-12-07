@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from contextOperator import ContextOperator
+from context_operator import ContextOperator
    
 
 class CAD_OSE(object):

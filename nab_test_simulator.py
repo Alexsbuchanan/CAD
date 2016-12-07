@@ -6,7 +6,7 @@ import os
 import math
 
 
-from CAD_OSE import CAD_OSE
+from cad_ose import CAD_OSE
 
 
 if __name__ == '__main__':
