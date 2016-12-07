@@ -1,5 +1,8 @@
-!["Yandex.Metrika counter"](https://mc.yandex.ru/watch/38967950)
 # Contextual Anomaly Detector 
-## Open Source Edition
- 
-If you have any questions about the detector - write to email smirmik@gmail.com
+
+```
+Copyright © 2016 Mikhail Smirnov <smirmik@gmail.com>
+Copyright © 2016 Gregory Petrosyan <gregory.petrosyan@gmail.com>
+```
+
+Attempt at refactoring [CAD OSE](https://github.com/smirmik/CAD) to understand the algorithm.
