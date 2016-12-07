@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 from contextOperator import ContextOperator
+   
 
 class CAD_OSE(object):
     '''
@@ -25,13 +26,7 @@ class CAD_OSE(object):
     https://github.com/smirmik/CAD
     '''
 
-    def __init__(self,  minValue,
-                        maxValue,
-                        baseThreshold = 0.75,
-                        restPeriod = 30,
-                        maxLeftSemiContextsLenght = 7,
-                        maxActiveNeuronsNum = 15,
-                        numNormValueBits = 3 ) :
+    def __init__(self,  minValue, maxValue, baseThreshold = 0.75, restPeriod = 30, maxLeftSemiContextsLenght = 7, maxActiveNeuronsNum = 15, numNormValueBits = 3 ) :
 
         self.minValue = float(minValue)
         self.maxValue = float(maxValue)
@@ -55,11 +50,11 @@ class CAD_OSE(object):
         self.lastPredictionedFacts = []
         self.resultValuesHistory = [ 1.0 ]
 
-
+        
     def step(self, inpFacts):
 
         currSensFacts = tuple(sorted(set(inpFacts)))
-
+        
         if len(self.leftFactsGroup) > 0 and len(currSensFacts) > 0 :
             potNewZeroLevelContext = tuple([self.leftFactsGroup,currSensFacts])
             newContextFlag = self.contextOperator.getContextByFacts([potNewZeroLevelContext], zerolevel = 1)
@@ -85,32 +80,35 @@ class CAD_OSE(object):
         self.leftFactsGroup = set()
         self.leftFactsGroup.update(currSensFacts, currNeurFacts)
         self.leftFactsGroup = tuple(sorted(self.leftFactsGroup))
-
-        numNewContexts  =  self.contextOperator.contextCrosser  (   
+        
+        numNewContexts, newPredictions  =  self.contextOperator.contextCrosser  (   
                                                         leftOrRight = 0,
                                                         factsList = self.leftFactsGroup,
                                                         potentialNewContexts = potentialNewContextList
                                                     )
 
         numNewContexts += 1 if newContextFlag else 0
-
+        
         percentAddedContextToUniqPotNew = numNewContexts / float(numUniqPotNewContext) if newContextFlag and numUniqPotNewContext > 0 else 0.0        
 
-        return percentSelectedContextActive, percentAddedContextToUniqPotNew  
+        return newPredictions, [ percentSelectedContextActive, percentAddedContextToUniqPotNew ]  
 
 
     def getAnomalyScore(self,inputData):
-
+        
         normInputValue = int((inputData["value"] - self.minValue) / self.minValueStep) 
         binInputNormValue = bin(normInputValue).lstrip("0b").rjust(self.numNormValueBits,"0")
 
-        outSens = set([ sNum * 2 + ( 1 if currSymb == "1" else 0 ) for sNum, currSymb in enumerate(reversed(binInputNormValue)) ])
+        outSens = set([ 2**16 + sNum * 2 + ( 1 if currSymb == "1" else 0 ) for sNum, currSymb in enumerate(reversed(binInputNormValue)) ])
+    
+        predictionError = sum([ 2 ** ((fact-65536) / 2.0) for fact in outSens if fact not in self.lastPredictionedFacts ]) / self.maxBinValue
 
-        anomalyValue0, anomalyValue1 = self.step(outSens)
+        self.lastPredictionedFacts, anomalyValues = self.step(outSens)
 
-        currentAnomalyScore = (1.0 - anomalyValue0 + anomalyValue1) / 2.0 
-
+        currentAnomalyScore = (1.0 - anomalyValues[0] + anomalyValues[1]) / 2.0 if predictionError > 0 else 0.0
+         
         returnedAnomalyScore = currentAnomalyScore if max(self.resultValuesHistory[-int(self.restPeriod):]) < self.baseThreshold else 0.0 
         self.resultValuesHistory.append(currentAnomalyScore)
-
+ 
         return returnedAnomalyScore
+

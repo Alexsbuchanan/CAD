@@ -29,10 +29,10 @@ from CAD_OSE import CAD_OSE
 
 if __name__ == '__main__':
 
-    TESTSET = 1
+    testSet = 1
 
     baseDataDir = "../NAB/data"
-
+    
     baseResultsDir = "../NAB/results"
     nullResultsDir = baseResultsDir + "/null"
 
@@ -42,13 +42,13 @@ if __name__ == '__main__':
     startAnomalyValueNumber = 0
 
     
-    if TESTSET == 1 :
+    if testSet == 1 :
         maxLeftSemiContextsLenght = 7
         maxActiveNeuronsNum = 15     
         numNormValueBits = 3
         baseThreshold = 0.75
 
-    elif TESTSET == 0 :
+    elif testSet == 0 :
         maxLeftSemiContextsLenght = 8
         maxActiveNeuronsNum = 16    
         numNormValueBits = 3
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     projectDirDescriptors = []
     for valuesVersion in xrange(numResultTypes) :
-        projectDirDescriptors.append("CAD-{0:%Y%m%d%H%M}-Set{1:1d}".format(datetime.datetime.now(), TESTSET))
+        projectDirDescriptors.append("CAD-{0:%Y%m%d%H%M}-Set{1:1d}".format(datetime.datetime.now(), testSet))
             
 
     dataDirTree = os.walk(baseDataDir)
