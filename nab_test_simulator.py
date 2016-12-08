@@ -5,118 +5,110 @@ import datetime
 import os
 import math
 
-
 from cad_ose import CAD_OSE
 
 
 if __name__ == '__main__':
+    test_set = 1
 
-    testSet = 1
+    base_data_dir = "../NAB/data"
 
-    baseDataDir = "../NAB/data"
+    base_results_dir = "../NAB/results"
+    null_results_dir = base_results_dir + "/null"
 
-    baseResultsDir = "../NAB/results"
-    nullResultsDir = baseResultsDir + "/null"
+    num_result_types = 1
+    start_anomaly_value_number = 0
 
+    if test_set == 1:
+        max_left_semi_contexts_length = 7
+        max_active_neurons_num = 15
+        num_norm_value_bits = 3
+        base_threshold = 0.75
 
-    numResultTypes = 1
-    numReturnedAnomalyValues = 1
-    startAnomalyValueNumber = 0
+    elif test_set == 0:
+        max_left_semi_contexts_length = 8
+        max_active_neurons_num = 16
+        num_norm_value_bits = 3
+        base_threshold = 1.0
 
+    project_dir_descriptors = []
+    for values_version in xrange(num_result_types):
+        project_dir_descriptors.append("CAD-{0:%Y%m%d%H%M}-Set{1:1d}".format(datetime.datetime.now(), test_set))
 
-    if testSet == 1 :
-        maxLeftSemiContextsLenght = 7
-        maxActiveNeuronsNum = 15
-        numNormValueBits = 3
-        baseThreshold = 0.75
+    data_dir_tree = os.walk(base_data_dir)
 
-    elif testSet == 0 :
-        maxLeftSemiContextsLenght = 8
-        maxActiveNeuronsNum = 16
-        numNormValueBits = 3
-        baseThreshold = 1.0
+    dir_names = []
+    full_file_names = []
 
+    for i, dir_descr in enumerate(data_dir_tree):
+        if i == 0:
+            dir_names = dir_descr[1]
+        else:
+            for file_name in dir_descr[2]:
+                full_file_names.append(dir_descr[0] + "/" + file_name)
 
-    projectDirDescriptors = []
-    for valuesVersion in xrange(numResultTypes) :
-        projectDirDescriptors.append("CAD-{0:%Y%m%d%H%M}-Set{1:1d}".format(datetime.datetime.now(), testSet))
+    for proj_dir_descr in project_dir_descriptors:
+        for directory in dir_names:
+            os.makedirs(base_results_dir + "/" + proj_dir_descr + "/" + directory)
 
-
-    dataDirTree = os.walk(baseDataDir)
-
-    dirNames = []
-    fullFileNames = []
-
-    for i, dirDescr in enumerate(dataDirTree) :
-        if i == 0 :
-            dirNames = dirDescr[1]
-        else :
-            for fileName in dirDescr[2] :
-                fullFileNames.append(dirDescr[0] + "/" + fileName)
-
-    for projDirDescr in projectDirDescriptors :
-        for directory in dirNames :
-            os.makedirs(baseResultsDir +"/" + projDirDescr + "/" + directory )
-
-    for fileNumber, fullFileName in enumerate(fullFileNames, start=1) :
-
+    for file_number, full_file_name in enumerate(full_file_names, start=1):
         print("-----------------------------------------")
-        print("[ " + str(fileNumber) + " ] " + fullFileName)
+        print("[ " + str(file_number) + " ] " + full_file_name)
 
-        minValue = float("inf")
-        maxValue = -float("inf")
-        with open(fullFileName, 'rb') as csvfile:
-            csvReader = csv.reader(csvfile, delimiter=',')
-            next(csvReader)
-            for rowNumber, row in enumerate(csvReader, start = 1):
-                inputDataValue = float(row[1])
-                minValue = min(inputDataValue, minValue)
-                maxValue = max(inputDataValue, maxValue)
+        min_value = float("inf")
+        max_value = -float("inf")
+        with open(full_file_name, 'rb') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            next(csv_reader)
+            for row_number, row in enumerate(csv_reader, start=1):
+                input_data_value = float(row[1])
+                min_value = min(input_data_value, min_value)
+                max_value = max(input_data_value, max_value)
 
-        learningPeriod = min( math.floor(0.15 * rowNumber), 0.15 * 5000)
+        learning_period = min(math.floor(0.15 * row_number), 0.15 * 5000)
 
-        print("minValue = " + str(minValue) + " : maxValue = " + str(maxValue))
+        print("min_value = " + str(min_value) + " : max_value = " + str(max_value))
 
-        cad = CAD_OSE   (
-                        minValue = minValue,
-                        maxValue = maxValue,
-                        baseThreshold = baseThreshold,
-                        restPeriod = learningPeriod / 5.0,
-                        maxLeftSemiContextsLenght = maxLeftSemiContextsLenght,
-                        maxActiveNeuronsNum = maxActiveNeuronsNum,
-                        numNormValueBits = numNormValueBits
-                    )
+        cad = CAD_OSE(
+            minValue=min_value,
+            maxValue=max_value,
+            baseThreshold=base_threshold,
+            restPeriod=learning_period / 5.0,
+            maxLeftSemiContextsLenght=max_left_semi_contexts_length,
+            maxActiveNeuronsNum=max_active_neurons_num,
+            numNormValueBits=num_norm_value_bits
+        )
 
-        anomalyMassiv = []
-        numSteps = 0
+        anomaly_array = []
+        num_steps = 0
 
-        outFileDsc = fullFileName[len(baseDataDir)+1:].split("/")
+        out_file_dsc = full_file_name[len(base_data_dir) + 1:].split("/")
 
-        labelsFile = open(nullResultsDir + "/" + outFileDsc[0] + "/" + "null_" + outFileDsc[1], 'rb')
-        csvLabelsReader = csv.reader(labelsFile, delimiter=',')
-        next(csvLabelsReader)
+        labels_file = open(null_results_dir + "/" + out_file_dsc[0] + "/" + "null_" + out_file_dsc[1], 'rb')
+        csv_labels_reader = csv.reader(labels_file, delimiter=',')
+        next(csv_labels_reader)
 
-        with open(fullFileName, 'rb') as csvfile:
-            csvReader = csv.reader(csvfile, delimiter=',')
-            next(csvReader)
-            for row in csvReader:
-                numSteps+=1
-                currentLabel = next(csvLabelsReader)[3]
+        with open(full_file_name, 'rb') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            next(csv_reader)
+            for row in csv_reader:
+                num_steps += 1
+                current_label = next(csv_labels_reader)[3]
 
-                inputDataDate =  datetime.datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
-                inputDataValue = float(row[1])
-                inputData = {"timestamp" : inputDataDate, "value" : inputDataValue}
+                input_data_date = datetime.datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
+                input_data_value = float(row[1])
+                input_data = {"timestamp": input_data_date, "value": input_data_value}
 
-                results = cad.getAnomalyScore(inputData)
-                anomalyMassiv.append([numSteps, row[0], row[1], currentLabel, [results]])
+                results = cad.getAnomalyScore(input_data)
+                anomaly_array.append([num_steps, row[0], row[1], current_label, [results]])
 
-
-        for i, projDirDescr in enumerate(projectDirDescriptors, start=startAnomalyValueNumber) :
-            newFileName = baseResultsDir + "/" + projDirDescr + "/" + outFileDsc[0] + "/" + projDirDescr + "_" + outFileDsc[1]
-            with open(newFileName, 'w') as csvOutFile:
-                csvOutFile.write("timestamp,value,anomaly_score,label\n")
-                for anomalyScores in anomalyMassiv:
-                    csvOutFile.write(anomalyScores[1]+ "," + anomalyScores[2] + "," + str(anomalyScores[4][i]) + "," + anomalyScores[3] + "\n")
-            print ("saved to: " + newFileName)
-
-
+        for i, proj_dir_descr in enumerate(project_dir_descriptors, start=start_anomaly_value_number):
+            new_file_name = base_results_dir + "/" + proj_dir_descr + "/" + out_file_dsc[
+                0] + "/" + proj_dir_descr + "_" + out_file_dsc[1]
+            with open(new_file_name, 'w') as csv_out_file:
+                csv_out_file.write("timestamp,value,anomaly_score,label\n")
+                for anomaly_scores in anomaly_array:
+                    csv_out_file.write(
+                        anomaly_scores[1] + "," + anomaly_scores[2] + "," + str(anomaly_scores[4][i]) + "," +
+                        anomaly_scores[3] + "\n")
+            print ("saved to: " + new_file_name)
