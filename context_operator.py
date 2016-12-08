@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*-
 
-class ContextOperator():
 
+class ContextOperator(object):
+    def __init__(self, max_left_semi_contexts_length):
+        self.max_left_semi_contexts_length = max_left_semi_contexts_length
 
-    def __init__(self, maxLeftSemiContextsLenght):
+        self.facts_dicts = [{}, {}]
+        self.semi_context_dicts = [{}, {}]
+        self.semi_context_values_lists = [[], []]
+        self.crossed_semi_contexts_lists = [[], []]
+        self.contexts_values_list = []
 
-        self.maxLeftSemiContextsLenght = maxLeftSemiContextsLenght
+        self.new_context_id = False
 
-        self.factsDics = [{},{}]
-        self.semiContextDics = [{},{}]
-        self.semiContextValuesLists = [[],[]]
-        self.crossedSemiContextsLists = [[],[]]
-        self.contextsValuesList = []
-
-        self.newContextID = False
-
-
-    def getContextByFacts (self, newContextsList, zerolevel = 0 ) :
+    def get_context_by_facts(self, new_contexts_list, zerolevel=0):
         """
         The function which determines by the complete facts list whether the context
         is already saved to the memory. If the context is not found the function
@@ -24,7 +21,7 @@ class ContextOperator():
         the contexts are divided into semi-contexts as several contexts can contain
         the same facts set in its left and right parts.
 
-        @param newContextsList:         list of potentially new contexts
+        @param new_contexts_list:       list of potentially new contexts
 
         @param zerolevel:               flag indicating the context type in
                                         transmitted list
@@ -36,128 +33,100 @@ class ContextOperator():
                     or:
                     b) number of the really new contexts that have been saved to the
                     context memory.
-
-
-        Функция, которая по полному списку фактов определяет существует ли уже в памяти
-        данный контекст и в случае, если такого контекста нет - сразу создаёт его.
-        Для оптимизации быстродействия и объема занимаемой оперативной памяти контексты
-        разделены на полуконтексты, в связи с тем, что сразу несколько контекстов могут
-        содержать одинаковый набор фактов в левой или правой части.
-
-        @param newContextsList:         список потенциально новых контекстов
-
-        @param zerolevel:               флаг, указывающий на то, какой тип контекстов
-                                        в передаваемом списке
-
-        @return :   в зависимости от того, какой тип потенциально новых контекстов был
-                    передан в качестве входных параметров, функция возвращает либо:
-                    а) флаг, указывающий на то, что переданный контекст нулевого
-                    уровня является новым/существующим,
-                    либо:
-                    б) количество контекстов, которые действительно оказались новыми
-                    и были сохранены в памяти контекстов.
-
         """
 
+        num_added_contexts = 0
 
-        numAddedContexts = 0
+        for left_facts, right_facts in new_contexts_list:
+            left_hash = left_facts.__hash__()
+            right_hash = right_facts.__hash__()
 
-        for leftFacts, rightFacts in newContextsList :
+            next_left_semi_context_number = len(self.semi_context_dicts[0])
+            left_semi_context_id = self.semi_context_dicts[0].setdefault(left_hash, next_left_semi_context_number)
+            if left_semi_context_id == next_left_semi_context_number:
+                left_semi_context_values = [[], len(left_facts), 0, {}]
+                self.semi_context_values_lists[0].append(left_semi_context_values)
+                for fact in left_facts:
+                    semi_context_list = self.facts_dicts[0].setdefault(fact, [])
+                    semi_context_list.append(left_semi_context_values)
 
-            leftHash = leftFacts.__hash__()
-            rightHash = rightFacts.__hash__()
+            next_right_semi_context_number = len(self.semi_context_dicts[1])
+            right_semi_context_id = self.semi_context_dicts[1].setdefault(right_hash, next_right_semi_context_number)
+            if right_semi_context_id == next_right_semi_context_number:
+                right_semi_context_values = [[], len(right_facts), 0]
+                self.semi_context_values_lists[1].append(right_semi_context_values)
+                for fact in right_facts:
+                    semi_context_list = self.facts_dicts[1].setdefault(fact, [])
+                    semi_context_list.append(right_semi_context_values)
 
-            nextLeftSemiContextNumber = len(self.semiContextDics[0])
-            leftSemiContextID = self.semiContextDics[0].setdefault(leftHash, nextLeftSemiContextNumber)
-            if leftSemiContextID == nextLeftSemiContextNumber :
-                leftSemiContextValues = [[] , len(leftFacts), 0, {}]
-                self.semiContextValuesLists[0].append(leftSemiContextValues)
-                for fact in leftFacts :
-                    semiContextList = self.factsDics[0].setdefault(fact, [])
-                    semiContextList.append(leftSemiContextValues)
+            next_free_context_id_number = len(self.contexts_values_list)
+            context_id = self.semi_context_values_lists[0][left_semi_context_id][3].setdefault(right_semi_context_id, next_free_context_id_number)
 
-            nextRightSemiContextNumber = len(self.semiContextDics[1])
-            rightSemiContextID = self.semiContextDics[1].setdefault(rightHash, nextRightSemiContextNumber)
-            if  rightSemiContextID == nextRightSemiContextNumber :
-                rightSemiContextValues = [[] , len(rightFacts), 0]
-                self.semiContextValuesLists[1].append(rightSemiContextValues)
-                for fact in rightFacts :
-                    semiContextList = self.factsDics[1].setdefault(fact, [])
-                    semiContextList.append(rightSemiContextValues)
+            if context_id == next_free_context_id_number:
+                num_added_contexts += 1
+                context_values = [0, 0, 0, right_facts, zerolevel, left_hash, right_hash]
 
-            nextFreeContextIDNumber = len(self.contextsValuesList)
-            contextID = self.semiContextValuesLists[0][leftSemiContextID][3].setdefault(rightSemiContextID, nextFreeContextIDNumber)
-
-            if contextID == nextFreeContextIDNumber :
-                numAddedContexts += 1
-                contextValues = [0, 0, 0, rightFacts, zerolevel, leftHash, rightHash]
-
-                self.contextsValuesList.append(contextValues)
-                if zerolevel :
-                    self.newContextID = contextID
+                self.contexts_values_list.append(context_values)
+                if zerolevel:
+                    self.new_context_id = context_id
                     return True
-            else :
-                contextValues = self.contextsValuesList[contextID]
+            else:
+                context_values = self.contexts_values_list[context_id]
 
-                if zerolevel :
-                    contextValues[4] = 1
+                if zerolevel:
+                    context_values[4] = 1
                     return False
 
+        return num_added_contexts
 
-        return numAddedContexts
+    def cross_contexts(self, left_or_right, facts_list, new_context_flag=False, potential_new_contexts=[]):
+        if left_or_right == 0:
+            if len(potential_new_contexts) > 0:
+                num_new_contexts = self.get_context_by_facts(potential_new_contexts)
+            else:
+                num_new_contexts = 0
+            max_pred_weight = 0.0
+            new_predictions = set()
+            prediction_contexts = []
 
+        for semi_context_values in self.crossed_semi_contexts_lists[left_or_right]:
+            semi_context_values[0] = []
+            semi_context_values[2] = 0
 
-    def contextCrosser(self, leftOrRight, factsList, newContextFlag = False, potentialNewContexts = []):
+        for fact in facts_list:
+            for semi_context_values in self.facts_dicts[left_or_right].get(fact, []):
+                semi_context_values[0].append(fact)
 
-        if leftOrRight == 0 :
-            if len(potentialNewContexts) > 0 :
-                numNewContexts = self.getContextByFacts (potentialNewContexts)
-            else :
-                numNewContexts = 0
-            maxPredWeight = 0.0
-            newPredictions = set()
-            predictionContexts = []
+        new_crossed_values = []
 
-        for semiContextValues in self.crossedSemiContextsLists[leftOrRight] :
-            semiContextValues[0] = []
-            semiContextValues[2] = 0
+        for semi_context_values in self.semi_context_values_lists[left_or_right]:
+            len_semi_context_values0 = len(semi_context_values[0])
+            semi_context_values[2] = len_semi_context_values0
+            if len_semi_context_values0 > 0:
+                new_crossed_values.append(semi_context_values)
+                if left_or_right == 0 and semi_context_values[1] == len_semi_context_values0:
+                    for context_id in semi_context_values[3].itervalues():
+                        context_values = self.contexts_values_list[context_id]
 
-        for fact in factsList :
-            for semiContextValues in self.factsDics[leftOrRight].get(fact, []) :
-                semiContextValues[0].append(fact)
+                        curr_pred_weight = context_values[1] / float(context_values[0]) if context_values[0] > 0 else 0.0
 
-        newCrossedValues = []
+                        if curr_pred_weight > max_pred_weight:
+                            max_pred_weight = curr_pred_weight
+                            prediction_contexts = [context_values]
 
-        for semiContextValues in self.semiContextValuesLists[leftOrRight] :
-            lenSemiContextValues0 = len(semiContextValues[0])
-            semiContextValues[2] = lenSemiContextValues0
-            if lenSemiContextValues0 > 0 :
-                newCrossedValues.append(semiContextValues)
-                if leftOrRight == 0 and semiContextValues[1] == lenSemiContextValues0 :
-                    for contextID in semiContextValues[3].itervalues():
-                        contextValues = self.contextsValuesList[contextID]
+                        elif curr_pred_weight == max_pred_weight:
+                            prediction_contexts.append(context_values)
 
-                        currPredWeight = contextValues[1] / float(contextValues[0]) if contextValues[0] > 0 else 0.0
+        self.crossed_semi_contexts_lists[left_or_right] = new_crossed_values
 
-                        if currPredWeight >  maxPredWeight :
-                            maxPredWeight = currPredWeight
-                            predictionContexts = [contextValues]
+        if left_or_right:
+            return self.update_contexts_and_get_active(new_context_flag)
+        else:
+            [new_predictions.update(context_values[3]) for context_values in prediction_contexts]
 
-                        elif currPredWeight ==  maxPredWeight :
-                            predictionContexts.append(contextValues)
+            return num_new_contexts, new_predictions
 
-        self.crossedSemiContextsLists[leftOrRight] = newCrossedValues
-
-        if  leftOrRight :
-            return self.updateContextsAndGetActive(newContextFlag)
-
-        else :
-            [ newPredictions.update(contextValues[3]) for contextValues in predictionContexts ]
-
-            return numNewContexts, newPredictions
-
-
-    def updateContextsAndGetActive(self, newContextFlag):
+    def update_contexts_and_get_active(self, new_context_flag):
         """
         This function reviews the list of previously selected left semi-contexts,
         updates the prediction results value of all contexts, including left
@@ -166,81 +135,53 @@ class ContextOperator():
         coincide with the input data and require activation, prepares the values
         for calculating anomaly value.
 
-        @param newContextFlag:         flag indicating that a new zero-level
+        @param new_context_flag:        flag indicating that a new zero-level
                                         context is not recorded at the current
                                         step, which means that all contexts
                                         already exist and there is no need to
                                         create new ones.
 
-        @return activeContexts:         list of identifiers of the contexts which
+        @return active_contexts:        list of identifiers of the contexts which
                                         completely coincide with the input stream,
                                         should be considered active and be
                                         recorded to the input stream of “neurons”
 
-        @return potentialNewContextsLists:  list of contexts based on intersection
+        @return potential_new_context_list:  list of contexts based on intersection
                                         between the left and the right zero-level
                                         semi-contexts, which are potentially new
                                         contexts requiring saving to the context
                                         memory
-
-
-        Эта функция производит обход по списку отобранных ранее левых полуконтекстов,
-        обновляет значения результативности предсказывания у всех контекстов, частью
-        которых являются данные левые полуконтексты, создаёт список контекстов,
-        которые являются результатом пересечения контекстов нулевого уровня и могут
-        быть новыми, определяет какие контексты полностью совпали входными данными и
-        их надо активировать, подготавливает показатели для расчета величины аномалии.
-
-
-        @param newContextsFlag:         флаг, указывающий на то, что на текущем шаге не был
-                                        записан новый контекст нулевого уровня, а значит не
-                                        нужно создавать путем пересечения новые контексты,
-                                        т.к. они все уже созданы ранее
-
-        @return activeContexts:         список индентификаторов контекстов, полностью
-                                        совпавших с входным потоком, которые нужно считать
-                                        активными и записать во входной поток "нейроны"
-
-        @return potentialNewContextsLists:    список контекстов, созданных на основе
-                                        пересечения левых и правых полуконтекстов нулевого
-                                        уровня, и потенциально являющихся новыми
-                                        контекстами, которые нужно запомнить в памяти
-                                        контекстов
         """
 
-        activeContexts = []
-        numSelectedContext = 0
+        active_contexts = []
+        num_selected_context = 0
 
-        potentialNewContextList = []
+        potential_new_context_list = []
 
-        for leftSemiContextValues in self.crossedSemiContextsLists[0] :
+        for left_semi_context_values in self.crossed_semi_contexts_lists[0]:
+            for right_semi_context_id, context_id in left_semi_context_values[3].iteritems():
 
-            for rightSemiContextID, contextID in leftSemiContextValues[3].iteritems() :
+                if self.new_context_id != context_id:
+                    context_values = self.contexts_values_list[context_id]
+                    right_semi_context_value0,  right_semi_context_value1, right_semi_context_value2 = self.semi_context_values_lists[1][right_semi_context_id]
 
-                if self.newContextID != contextID :
+                    if left_semi_context_values[1] == left_semi_context_values[2]:
+                        num_selected_context += 1
+                        context_values[0] += right_semi_context_value1
 
-                    contextValues = self.contextsValuesList[contextID]
-                    rightSemiContextValue0,  rightSemiContextValue1, rightSemiContextValue2 = self.semiContextValuesLists[1][rightSemiContextID]
+                        if right_semi_context_value2 > 0:
+                            context_values[1] += right_semi_context_value2
 
-                    if leftSemiContextValues[1] == leftSemiContextValues[2] :
+                            if right_semi_context_value1 == right_semi_context_value2:
+                                context_values[2] += 1
+                                active_contexts.append([context_id, context_values[2], context_values[5], context_values[6]])
 
-                        numSelectedContext += 1
-                        contextValues[0] += rightSemiContextValue1
+                            elif context_values[4] and new_context_flag and left_semi_context_values[2] <= self.max_left_semi_contexts_length:
+                                potential_new_context_list.append(tuple([tuple(left_semi_context_values[0]), tuple(right_semi_context_value0)]))
 
-                        if rightSemiContextValue2 > 0 :
-                            contextValues[1] += rightSemiContextValue2
+                    elif context_values[4] and new_context_flag and right_semi_context_value2 > 0 and left_semi_context_values[2] <= self.max_left_semi_contexts_length:
+                        potential_new_context_list.append(tuple([tuple(left_semi_context_values[0]), tuple(right_semi_context_value0)]))
 
-                            if rightSemiContextValue1 == rightSemiContextValue2 :
-                                contextValues[2] += 1
-                                activeContexts.append([contextID, contextValues[2], contextValues[5], contextValues[6]])
+        self.new_context_id = False
 
-                            elif contextValues[4] and newContextFlag and leftSemiContextValues[2] <= self.maxLeftSemiContextsLenght :
-                                potentialNewContextList.append(tuple([tuple(leftSemiContextValues[0]), tuple(rightSemiContextValue0)]))
-
-
-                    elif contextValues[4] and newContextFlag and rightSemiContextValue2 > 0 and leftSemiContextValues[2] <= self.maxLeftSemiContextsLenght :
-                        potentialNewContextList.append(tuple([tuple(leftSemiContextValues[0]), tuple(rightSemiContextValue0)]))
-
-        self.newContextID = False
-
-        return activeContexts, numSelectedContext, potentialNewContextList
+        return active_contexts, num_selected_context, potential_new_context_list

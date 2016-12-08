@@ -32,15 +32,15 @@ class ContextualAnomalyDetector(object):
 
         if len(self.left_facts_group) > 0 and len(curr_sens_facts) > 0:
             pot_new_zero_level_context = tuple([self.left_facts_group, curr_sens_facts])
-            new_context_flag = self.context_operator.getContextByFacts([pot_new_zero_level_context], zerolevel=1)
+            new_context_flag = self.context_operator.get_context_by_facts([pot_new_zero_level_context], zerolevel=1)
         else:
             pot_new_zero_level_context = False
             new_context_flag = False
 
-        active_contexts, num_selected_context, potential_new_context_list = self.context_operator.contextCrosser(
-                                                                            leftOrRight=1,
-                                                                            factsList=curr_sens_facts,
-                                                                            newContextFlag=new_context_flag
+        active_contexts, num_selected_context, potential_new_context_list = self.context_operator.cross_contexts(
+                                                                            left_or_right=1,
+                                                                            facts_list=curr_sens_facts,
+                                                                            new_context_flag=new_context_flag
                                                                         )
 
         num_uniq_pot_new_context = len(set(potential_new_context_list).union([pot_new_zero_level_context]) if pot_new_zero_level_context else set(potential_new_context_list))
@@ -56,10 +56,10 @@ class ContextualAnomalyDetector(object):
         self.left_facts_group.update(curr_sens_facts, curr_neur_facts)
         self.left_facts_group = tuple(sorted(self.left_facts_group))
 
-        num_new_contexts, new_predictions = self.context_operator.contextCrosser(
-                                                        leftOrRight=0,
-                                                        factsList=self.left_facts_group,
-                                                        potentialNewContexts=potential_new_context_list
+        num_new_contexts, new_predictions = self.context_operator.cross_contexts(
+                                                        left_or_right=0,
+                                                        facts_list=self.left_facts_group,
+                                                        potential_new_contexts=potential_new_context_list
                                                     )
 
         num_new_contexts += 1 if new_context_flag else 0
