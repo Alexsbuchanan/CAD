@@ -79,7 +79,10 @@ class ContextOperator(object):
 
         return num_added_contexts
 
-    def cross_contexts(self, left_or_right, facts_list, new_context_flag=False, potential_new_contexts=[]):
+    def cross_contexts(self, left_or_right, facts_list, new_context_flag=False, potential_new_contexts=None):
+        if potential_new_contexts is None:
+            potential_new_contexts = []
+
         if left_or_right == 0:
             if len(potential_new_contexts) > 0:
                 num_new_contexts = self.get_context_by_facts(potential_new_contexts)
