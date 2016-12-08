@@ -5,7 +5,7 @@ import datetime
 import os
 import math
 
-from cad_ose import CAD_OSE
+from cad_ose import ContextualAnomalyDetector
 
 
 if __name__ == '__main__':
@@ -69,14 +69,14 @@ if __name__ == '__main__':
 
         print("min_value = " + str(min_value) + " : max_value = " + str(max_value))
 
-        cad = CAD_OSE(
-            minValue=min_value,
-            maxValue=max_value,
-            baseThreshold=base_threshold,
-            restPeriod=learning_period / 5.0,
-            maxLeftSemiContextsLenght=max_left_semi_contexts_length,
-            maxActiveNeuronsNum=max_active_neurons_num,
-            numNormValueBits=num_norm_value_bits
+        cad = ContextualAnomalyDetector(
+            min_value=min_value,
+            max_value=max_value,
+            base_threshold=base_threshold,
+            rest_period=learning_period / 5.0,
+            max_left_semi_contexts_length=max_left_semi_contexts_length,
+            max_active_neurons_num=max_active_neurons_num,
+            num_norm_value_bits=num_norm_value_bits
         )
 
         anomaly_array = []
@@ -99,7 +99,7 @@ if __name__ == '__main__':
                 input_data_value = float(row[1])
                 input_data = {"timestamp": input_data_date, "value": input_data_value}
 
-                results = cad.getAnomalyScore(input_data)
+                results = cad.get_anomaly_score(input_data)
                 anomaly_array.append([num_steps, row[0], row[1], current_label, [results]])
 
         for i, proj_dir_descr in enumerate(project_dir_descriptors, start=start_anomaly_value_number):

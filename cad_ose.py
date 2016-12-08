@@ -3,95 +3,84 @@
 from context_operator import ContextOperator
 
 
-class CAD_OSE(object):
-    '''
-    Contextual Anomaly Detector - Open Source Edition
-    https://github.com/smirmik/CAD
-    '''
+class ContextualAnomalyDetector(object):
+    def __init__(self, min_value, max_value, base_threshold=0.75, rest_period=30, max_left_semi_contexts_length=7, max_active_neurons_num=15, num_norm_value_bits=3):
+        self.min_value = float(min_value)
+        self.max_value = float(max_value)
+        self.rest_period = rest_period
+        self.base_threshold = base_threshold
+        self.max_active_neurons_num = max_active_neurons_num
+        self.num_norm_value_bits = num_norm_value_bits
 
-    def __init__(self,  minValue, maxValue, baseThreshold = 0.75, restPeriod = 30, maxLeftSemiContextsLenght = 7, maxActiveNeuronsNum = 15, numNormValueBits = 3 ) :
+        self.max_bin_value = 2 ** self.num_norm_value_bits - 1.0
+        self.full_value_range = self.max_value - self.min_value
+        if self.full_value_range == 0.0:
+            self.full_value_range = self.max_bin_value
+        self.min_value_step = self.full_value_range / self.max_bin_value
 
-        self.minValue = float(minValue)
-        self.maxValue = float(maxValue)
-        self.restPeriod = restPeriod
-        self.baseThreshold = baseThreshold
-        self.maxActiveNeuronsNum = maxActiveNeuronsNum
-        self.numNormValueBits = numNormValueBits
+        self.left_facts_group = tuple()
 
-        self.maxBinValue = 2 ** self.numNormValueBits - 1.0
-        self.fullValueRange = self.maxValue - self.minValue
-        if self.fullValueRange == 0.0 :
-            self.fullValueRange = self.maxBinValue
-        self.minValueStep = self.fullValueRange / self.maxBinValue
+        self.context_operator = ContextOperator(max_left_semi_contexts_length)
 
-        self.leftFactsGroup = tuple()
+        self.potential_new_contexts = []
 
-        self.contextOperator = ContextOperator( maxLeftSemiContextsLenght )
+        self.last_predicted_facts = []
+        self.result_values_history = [1.0]
 
-        self.potentialNewContexts = []
+    def step(self, input_facts):
+        curr_sens_facts = tuple(sorted(set(input_facts)))
 
-        self.lastPredictionedFacts = []
-        self.resultValuesHistory = [ 1.0 ]
+        if len(self.left_facts_group) > 0 and len(curr_sens_facts) > 0:
+            pot_new_zero_level_context = tuple([self.left_facts_group, curr_sens_facts])
+            new_context_flag = self.context_operator.getContextByFacts([pot_new_zero_level_context], zerolevel=1)
+        else:
+            pot_new_zero_level_context = False
+            new_context_flag = False
 
-
-    def step(self, inpFacts):
-
-        currSensFacts = tuple(sorted(set(inpFacts)))
-
-        if len(self.leftFactsGroup) > 0 and len(currSensFacts) > 0 :
-            potNewZeroLevelContext = tuple([self.leftFactsGroup,currSensFacts])
-            newContextFlag = self.contextOperator.getContextByFacts([potNewZeroLevelContext], zerolevel = 1)
-        else :
-            potNewZeroLevelContext = False
-            newContextFlag = False
-
-        activeContexts, numSelectedContext, potentialNewContextList =  self.contextOperator.contextCrosser (
-                                                                            leftOrRight = 1,
-                                                                            factsList = currSensFacts,
-                                                                            newContextFlag = newContextFlag
+        active_contexts, num_selected_context, potential_new_context_list = self.context_operator.contextCrosser(
+                                                                            leftOrRight=1,
+                                                                            factsList=curr_sens_facts,
+                                                                            newContextFlag=new_context_flag
                                                                         )
 
-        numUniqPotNewContext = len(set(potentialNewContextList).union([potNewZeroLevelContext]) if potNewZeroLevelContext else set(potentialNewContextList))
+        num_uniq_pot_new_context = len(set(potential_new_context_list).union([pot_new_zero_level_context]) if pot_new_zero_level_context else set(potential_new_context_list))
 
-        percentSelectedContextActive = len(activeContexts) / float(numSelectedContext) if numSelectedContext > 0 else 0.0
+        percent_selected_context_active = len(active_contexts) / float(num_selected_context) if num_selected_context > 0 else 0.0
 
-        activeContexts = sorted(activeContexts, cmp=lambda x,y: cmp(x[1], y[1]) if cmp(x[1], y[1]) !=0 else cmp(x[2], y[2]) if cmp(x[2], y[2]) !=0 else cmp(x[3], y[3]) )
-        activeNeurons = [ activeContextInfo[0] for activeContextInfo in activeContexts[-self.maxActiveNeuronsNum:] ]
+        active_contexts = sorted(active_contexts, cmp=lambda x, y: cmp(x[1], y[1]) if cmp(x[1], y[1]) != 0 else cmp(x[2], y[2]) if cmp(x[2], y[2]) != 0 else cmp(x[3], y[3]))
+        active_neurons = [activeContextInfo[0] for activeContextInfo in active_contexts[-self.max_active_neurons_num:]]
 
-        currNeurFacts = set([ 2 ** 31 + fact for fact in activeNeurons ])
+        curr_neur_facts = set([2 ** 31 + fact for fact in active_neurons])
 
-        self.leftFactsGroup = set()
-        self.leftFactsGroup.update(currSensFacts, currNeurFacts)
-        self.leftFactsGroup = tuple(sorted(self.leftFactsGroup))
+        self.left_facts_group = set()
+        self.left_facts_group.update(curr_sens_facts, curr_neur_facts)
+        self.left_facts_group = tuple(sorted(self.left_facts_group))
 
-        numNewContexts, newPredictions  =  self.contextOperator.contextCrosser  (
-                                                        leftOrRight = 0,
-                                                        factsList = self.leftFactsGroup,
-                                                        potentialNewContexts = potentialNewContextList
+        num_new_contexts, new_predictions = self.context_operator.contextCrosser(
+                                                        leftOrRight=0,
+                                                        factsList=self.left_facts_group,
+                                                        potentialNewContexts=potential_new_context_list
                                                     )
 
-        numNewContexts += 1 if newContextFlag else 0
+        num_new_contexts += 1 if new_context_flag else 0
 
-        percentAddedContextToUniqPotNew = numNewContexts / float(numUniqPotNewContext) if newContextFlag and numUniqPotNewContext > 0 else 0.0
+        percent_added_context_to_uniq_pot_new = num_new_contexts / float(num_uniq_pot_new_context) if new_context_flag and num_uniq_pot_new_context > 0 else 0.0
 
-        return newPredictions, [ percentSelectedContextActive, percentAddedContextToUniqPotNew ]
+        return new_predictions, [percent_selected_context_active, percent_added_context_to_uniq_pot_new]
 
+    def get_anomaly_score(self, input_data):
+        norm_input_value = int((input_data["value"] - self.min_value) / self.min_value_step)
+        bin_input_norm_value = bin(norm_input_value).lstrip("0b").rjust(self.num_norm_value_bits, "0")
 
-    def getAnomalyScore(self,inputData):
+        out_sens = set([2**16 + s_num * 2 + (1 if cur_sym == "1" else 0) for s_num, cur_sym in enumerate(reversed(bin_input_norm_value))])
 
-        normInputValue = int((inputData["value"] - self.minValue) / self.minValueStep)
-        binInputNormValue = bin(normInputValue).lstrip("0b").rjust(self.numNormValueBits,"0")
+        prediction_error = sum([2 ** ((fact-65536) / 2.0) for fact in out_sens if fact not in self.last_predicted_facts]) / self.max_bin_value
 
-        outSens = set([ 2**16 + sNum * 2 + ( 1 if currSymb == "1" else 0 ) for sNum, currSymb in enumerate(reversed(binInputNormValue)) ])
+        self.last_predicted_facts, anomalyValues = self.step(out_sens)
 
-        predictionError = sum([ 2 ** ((fact-65536) / 2.0) for fact in outSens if fact not in self.lastPredictionedFacts ]) / self.maxBinValue
+        current_anomaly_score = (1.0 - anomalyValues[0] + anomalyValues[1]) / 2.0 if prediction_error > 0 else 0.0
 
-        self.lastPredictionedFacts, anomalyValues = self.step(outSens)
+        returned_anomaly_score = current_anomaly_score if max(self.result_values_history[-int(self.rest_period):]) < self.base_threshold else 0.0
+        self.result_values_history.append(current_anomaly_score)
 
-        currentAnomalyScore = (1.0 - anomalyValues[0] + anomalyValues[1]) / 2.0 if predictionError > 0 else 0.0
-
-        returnedAnomalyScore = currentAnomalyScore if max(self.resultValuesHistory[-int(self.restPeriod):]) < self.baseThreshold else 0.0
-        self.resultValuesHistory.append(currentAnomalyScore)
-
-        return returnedAnomalyScore
-
+        return returned_anomaly_score
