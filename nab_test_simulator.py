@@ -2,8 +2,9 @@
 
 import csv
 import datetime
-import os
 import math
+import os
+import subprocess
 
 from cad_ose import ContextualAnomalyDetector
 
@@ -32,8 +33,9 @@ if __name__ == '__main__':
         base_threshold = 1.0
 
     project_dir_descriptors = []
+    git_version = subprocess.check_output(['git', 'describe', '--always']).strip()
     for values_version in xrange(num_result_types):
-        project_dir_descriptors.append("CAD-{0:%Y%m%d%H%M}-Set{1:1d}".format(datetime.datetime.now(), test_set))
+        project_dir_descriptors.append("CAD-{0}-Set{1:1d}".format(git_version, test_set))
 
     data_dir_tree = os.walk(base_data_dir)
 
