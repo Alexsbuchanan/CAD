@@ -14,31 +14,21 @@ from cad_ose import ContextualAnomalyDetector
 def main():
     git_version = subprocess.check_output(['git', 'describe', '--always']).strip()
 
-    base_data_dir = "../NAB/data"
-    base_results_dir = "../NAB/results"
-    null_results_dir = base_results_dir + "/null"
-    proj_dir_descr = "CAD-{0}".format(git_version)
-
-    max_left_semi_contexts_length = 7
-    max_active_neurons_num = 15
-    num_norm_value_bits = 3
-    base_threshold = 0.75
-
-    full_file_names = glob.glob(os.path.join(base_data_dir, '**/*.csv'))
-
-    kwargs = {
-        'base_data_dir': base_data_dir,
-        'base_results_dir': base_results_dir,
-        'null_results_dir': null_results_dir,
-        'proj_dir_descr': proj_dir_descr,
-        'max_left_semi_contexts_length' : max_left_semi_contexts_length,
-        'max_active_neurons_num': max_active_neurons_num,
-        'num_norm_value_bits' : num_norm_value_bits,
-        'base_threshold': base_threshold,
+    params = {
+        'base_data_dir':                 '../NAB/data',
+        'base_results_dir':              '../NAB/results',
+        'null_results_dir':              '../NAB/results/null',
+        'proj_dir_descr':                'CAD-{0}'.format(git_version),
+        'max_left_semi_contexts_length':  7,
+        'max_active_neurons_num':        15,
+        'num_norm_value_bits':            3,
+        'base_threshold':                 0.75,
     }
 
+    full_file_names = glob.glob(os.path.join(params['base_data_dir'], '**/*.csv'))
+
     def process_wrap(args):
-        process(*args, **kwargs)
+        process(*args, **params)
 
     pool = multiprocessing.Pool()
     pool.map_async(process_wrap, enumerate(full_file_names)).get(999999999)
