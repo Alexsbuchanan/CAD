@@ -13,7 +13,7 @@ class ContextOperator(object):
 
         self.new_context_id = False
 
-    def get_context_by_facts(self, new_contexts_list, zerolevel=0):
+    def get_context_by_facts(self, new_contexts_list, zerolevel):
         """
         The function which determines by the complete facts list whether the context
         is already saved to the memory. If the context is not found the function
@@ -85,7 +85,7 @@ class ContextOperator(object):
 
         if left_or_right == 0:
             if len(potential_new_contexts) > 0:
-                num_new_contexts = self.get_context_by_facts(potential_new_contexts)
+                num_new_contexts = self.get_context_by_facts(potential_new_contexts, zerolevel=0)
             else:
                 num_new_contexts = 0
             max_pred_weight = 0.0
