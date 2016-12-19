@@ -17,8 +17,6 @@ def main():
     base_results_dir = "../NAB/results"
     null_results_dir = base_results_dir + "/null"
 
-    start_anomaly_value_number = 0
-
     max_left_semi_contexts_length = 7
     max_active_neurons_num = 15
     num_norm_value_bits = 3
@@ -93,7 +91,7 @@ def main():
                 results = cad.get_anomaly_score(input_data)
                 anomaly_array.append([num_steps, row[0], row[1], current_label, [results]])
 
-        for i, proj_dir_descr in enumerate(project_dir_descriptors, start=start_anomaly_value_number):
+        for i, proj_dir_descr in enumerate(project_dir_descriptors):
             new_file_name = base_results_dir + "/" + proj_dir_descr + "/" + out_file_dsc[
                 0] + "/" + proj_dir_descr + "_" + out_file_dsc[1]
             with open(new_file_name, 'w') as csv_out_file:
