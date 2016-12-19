@@ -2,6 +2,7 @@
 
 import csv
 import datetime
+import glob
 import math
 import os
 import subprocess
@@ -24,14 +25,7 @@ def main():
 
     proj_dir_descr = "CAD-{0}".format(git_version)
 
-    data_dir_tree = os.walk(base_data_dir)
-
-    full_file_names = []
-
-    for i, dir_descr in enumerate(data_dir_tree):
-        if i != 0:
-            for file_name in dir_descr[2]:
-                full_file_names.append(dir_descr[0] + "/" + file_name)
+    full_file_names = glob.glob(os.path.join(base_data_dir, '**/*.csv'))
 
     for file_number, full_file_name in enumerate(full_file_names, start=1):
         print("-----------------------------------------")
