@@ -13,12 +13,13 @@ from cad_ose import ContextualAnomalyDetector
 
 def main():
     git_version = subprocess.check_output(['git', 'describe', '--always']).strip()
+    detector_name = 'CAD-{0}'.format(git_version)
 
     params = {
         'base_data_dir':                 '../NAB/data',
         'base_results_dir':              '../NAB/results',
         'null_results_dir':              '../NAB/results/null',
-        'proj_dir_descr':                'CAD-{0}'.format(git_version),
+        'proj_dir_descr':                detector_name,
         'max_left_semi_contexts_length':  7,
         'max_active_neurons_num':        15,
         'num_norm_value_bits':            3,
@@ -32,6 +33,9 @@ def main():
 
     pool = multiprocessing.Pool()
     pool.map_async(process_wrap, enumerate(full_file_names)).get(999999999)
+
+    os.chdir('../NAB')
+    subprocess.check_call(['python', 'run.py', '-d', detector_name, '--score', '--normalize', '--skipConfirmation'])
 
 
 def process(file_number,
