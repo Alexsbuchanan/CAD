@@ -50,7 +50,7 @@ class ContextualAnomalyDetector(object):
         active_contexts = sorted(active_contexts, key=lambda ctx: (ctx[1], ctx[2], ctx[3]))
         active_neurons = [activeContextInfo[0] for activeContextInfo in active_contexts[-self.max_active_neurons_num:]]
 
-        curr_neur_facts = set([2 ** 31 + fact for fact in active_neurons])
+        curr_neur_facts = set(2 ** 31 + fact for fact in active_neurons)
 
         self.left_facts_group = set()
         self.left_facts_group.update(curr_sens_facts, curr_neur_facts)
@@ -72,9 +72,9 @@ class ContextualAnomalyDetector(object):
         norm_input_value = int((input_data["value"] - self.min_value) / self.min_value_step)
         bin_input_norm_value = bin(norm_input_value).lstrip("0b").rjust(self.num_norm_value_bits, "0")
 
-        out_sens = set([2**16 + s_num * 2 + (1 if cur_sym == "1" else 0) for s_num, cur_sym in enumerate(reversed(bin_input_norm_value))])
+        out_sens = set(2**16 + s_num * 2 + (1 if cur_sym == "1" else 0) for s_num, cur_sym in enumerate(reversed(bin_input_norm_value)))
 
-        prediction_error = sum([2 ** ((fact-65536) / 2.0) for fact in out_sens if fact not in self.last_predicted_facts]) / self.max_bin_value
+        prediction_error = sum(2 ** ((fact-65536) / 2.0) for fact in out_sens if fact not in self.last_predicted_facts) / self.max_bin_value
 
         self.last_predicted_facts, anomalyValues = self.step(out_sens)
 
