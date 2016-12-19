@@ -9,7 +9,7 @@ import subprocess
 from cad_ose import ContextualAnomalyDetector
 
 
-if __name__ == '__main__':
+def main():
     test_set = 1
 
     base_data_dir = "../NAB/data"
@@ -114,3 +114,7 @@ if __name__ == '__main__':
                         anomaly_scores[1] + "," + anomaly_scores[2] + "," + str(anomaly_scores[4][i]) + "," +
                         anomaly_scores[3] + "\n")
             print ("saved to: " + new_file_name)
+
+
+if __name__ == '__main__':
+    main()
