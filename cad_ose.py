@@ -4,7 +4,7 @@ from context_operator import ContextOperator
 
 
 class ContextualAnomalyDetector(object):
-    def __init__(self, min_value, max_value, base_threshold=0.75, rest_period=30, max_left_semi_contexts_length=7, max_active_neurons_num=15, num_norm_value_bits=3):
+    def __init__(self, min_value, max_value, base_threshold, rest_period, max_left_semi_contexts_length, max_active_neurons_num, num_norm_value_bits):
         self.min_value = float(min_value)
         self.max_value = float(max_value)
         self.rest_period = rest_period
