@@ -22,23 +22,16 @@ def main():
     num_norm_value_bits = 3
     base_threshold = 0.75
 
-    project_dir_descriptors = ["CAD-{0}".format(git_version)]
+    proj_dir_descr = "CAD-{0}".format(git_version)
 
     data_dir_tree = os.walk(base_data_dir)
 
-    dir_names = []
     full_file_names = []
 
     for i, dir_descr in enumerate(data_dir_tree):
-        if i == 0:
-            dir_names = dir_descr[1]
-        else:
+        if i != 0:
             for file_name in dir_descr[2]:
                 full_file_names.append(dir_descr[0] + "/" + file_name)
-
-    for proj_dir_descr in project_dir_descriptors:
-        for directory in dir_names:
-            os.makedirs(base_results_dir + "/" + proj_dir_descr + "/" + directory)
 
     for file_number, full_file_name in enumerate(full_file_names, start=1):
         print("-----------------------------------------")
@@ -91,16 +84,21 @@ def main():
                 results = cad.get_anomaly_score(input_data)
                 anomaly_array.append([num_steps, row[0], row[1], current_label, [results]])
 
-        for i, proj_dir_descr in enumerate(project_dir_descriptors):
-            new_file_name = base_results_dir + "/" + proj_dir_descr + "/" + out_file_dsc[
-                0] + "/" + proj_dir_descr + "_" + out_file_dsc[1]
-            with open(new_file_name, 'w') as csv_out_file:
-                csv_out_file.write("timestamp,value,anomaly_score,label\n")
-                for anomaly_scores in anomaly_array:
-                    csv_out_file.write(
-                        anomaly_scores[1] + "," + anomaly_scores[2] + "," + str(anomaly_scores[4][i]) + "," +
-                        anomaly_scores[3] + "\n")
-            print ("saved to: " + new_file_name)
+        new_file_name = base_results_dir + "/" + proj_dir_descr + "/" + out_file_dsc[0] + "/" + proj_dir_descr + "_" + out_file_dsc[1]
+        ensure_dir(new_file_name)
+        with open(new_file_name, 'w') as csv_out_file:
+            csv_out_file.write("timestamp,value,anomaly_score,label\n")
+            for anomaly_scores in anomaly_array:
+                csv_out_file.write(
+                    anomaly_scores[1] + "," + anomaly_scores[2] + "," + str(anomaly_scores[4][0]) + "," +
+                    anomaly_scores[3] + "\n")
+        print ("saved to: " + new_file_name)
+
+
+def ensure_dir(path):
+    dirname = os.path.dirname(path)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
 
 
 if __name__ == '__main__':
