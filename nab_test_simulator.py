@@ -14,20 +14,42 @@ def main():
     git_version = subprocess.check_output(['git', 'describe', '--always']).strip()
 
     base_data_dir = "../NAB/data"
-
     base_results_dir = "../NAB/results"
     null_results_dir = base_results_dir + "/null"
+    proj_dir_descr = "CAD-{0}".format(git_version)
 
     max_left_semi_contexts_length = 7
     max_active_neurons_num = 15
     num_norm_value_bits = 3
     base_threshold = 0.75
 
-    proj_dir_descr = "CAD-{0}".format(git_version)
-
     full_file_names = glob.glob(os.path.join(base_data_dir, '**/*.csv'))
 
     for file_number, full_file_name in enumerate(full_file_names, start=1):
+        kwargs = {
+            'base_data_dir': base_data_dir,
+            'base_results_dir': base_results_dir,
+            'null_results_dir': null_results_dir,
+            'proj_dir_descr': proj_dir_descr,
+            'max_left_semi_contexts_length' : max_left_semi_contexts_length,
+            'max_active_neurons_num': max_active_neurons_num,
+            'num_norm_value_bits' : num_norm_value_bits,
+            'base_threshold': base_threshold,
+        }
+        process(file_number, full_file_name, **kwargs)
+
+
+def process(file_number,
+            full_file_name,
+            base_data_dir,
+            base_results_dir,
+            null_results_dir,
+            proj_dir_descr,
+            max_left_semi_contexts_length,
+            max_active_neurons_num,
+            num_norm_value_bits,
+            base_threshold,
+            ):
         print("-----------------------------------------")
         print("[ " + str(file_number) + " ] " + full_file_name)
 
