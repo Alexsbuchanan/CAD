@@ -180,10 +180,10 @@ class ContextOperator(object):
                                 active_contexts.append([context_id, context_values[2], context_values[5], context_values[6]])
 
                             elif context_values[4] and new_context_flag and left_semi_context_values[2] <= self.max_left_semi_contexts_length:
-                                potential_new_context_list.append(tuple([tuple(left_semi_context_values[0]), tuple(right_semi_context_value0)]))
+                                potential_new_context_list.append((tuple(left_semi_context_values[0]), tuple(right_semi_context_value0)))
 
                     elif context_values[4] and new_context_flag and right_semi_context_value2 > 0 and left_semi_context_values[2] <= self.max_left_semi_contexts_length:
-                        potential_new_context_list.append(tuple([tuple(left_semi_context_values[0]), tuple(right_semi_context_value0)]))
+                        potential_new_context_list.append((tuple(left_semi_context_values[0]), tuple(right_semi_context_value0)))
 
         self.new_context_id = False
 

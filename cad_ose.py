@@ -31,7 +31,7 @@ class ContextualAnomalyDetector(object):
         curr_sens_facts = tuple(sorted(set(input_facts)))
 
         if len(self.left_facts_group) > 0 and len(curr_sens_facts) > 0:
-            pot_new_zero_level_context = tuple([self.left_facts_group, curr_sens_facts])
+            pot_new_zero_level_context = (self.left_facts_group, curr_sens_facts)
             new_context_flag = self.context_operator.get_context_by_facts([pot_new_zero_level_context], zerolevel=1)
         else:
             pot_new_zero_level_context = False
