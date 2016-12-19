@@ -47,7 +47,7 @@ class ContextualAnomalyDetector(object):
 
         percent_selected_context_active = len(active_contexts) / float(num_selected_context) if num_selected_context > 0 else 0.0
 
-        active_contexts = sorted(active_contexts, cmp=compare_contexts)
+        active_contexts = sorted(active_contexts, key=lambda ctx: (ctx[1], ctx[2], ctx[3]))
         active_neurons = [activeContextInfo[0] for activeContextInfo in active_contexts[-self.max_active_neurons_num:]]
 
         curr_neur_facts = set([2 ** 31 + fact for fact in active_neurons])
@@ -84,11 +84,3 @@ class ContextualAnomalyDetector(object):
         self.result_values_history.append(current_anomaly_score)
 
         return returned_anomaly_score
-
-
-def compare_contexts(x, y):
-    if cmp(x[1], y[1]) != 0:
-        return cmp(x[1], y[1])
-    if cmp(x[2], y[2]) != 0:
-        return cmp(x[2], y[2])
-    return cmp(x[3], y[3])
