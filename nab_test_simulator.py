@@ -10,8 +10,6 @@ from cad_ose import ContextualAnomalyDetector
 
 
 def main():
-    test_set = 1
-
     base_data_dir = "../NAB/data"
 
     base_results_dir = "../NAB/results"
@@ -20,22 +18,15 @@ def main():
     num_result_types = 1
     start_anomaly_value_number = 0
 
-    if test_set == 1:
-        max_left_semi_contexts_length = 7
-        max_active_neurons_num = 15
-        num_norm_value_bits = 3
-        base_threshold = 0.75
-
-    elif test_set == 0:
-        max_left_semi_contexts_length = 8
-        max_active_neurons_num = 16
-        num_norm_value_bits = 3
-        base_threshold = 1.0
+    max_left_semi_contexts_length = 7
+    max_active_neurons_num = 15
+    num_norm_value_bits = 3
+    base_threshold = 0.75
 
     project_dir_descriptors = []
     git_version = subprocess.check_output(['git', 'describe', '--always']).strip()
     for values_version in xrange(num_result_types):
-        project_dir_descriptors.append("CAD-{0}-Set{1:1d}".format(git_version, test_set))
+        project_dir_descriptors.append("CAD-{0}".format(git_version))
 
     data_dir_tree = os.walk(base_data_dir)
 
