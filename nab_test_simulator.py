@@ -41,7 +41,7 @@ def main():
         process(*args, **kwargs)
 
     pool = multiprocessing.Pool()
-    pool.map_async(process_wrap, enumerate(full_file_names, start=1)).get(999999999)
+    pool.map_async(process_wrap, enumerate(full_file_names)).get(999999999)
 
 
 def process(file_number,
@@ -56,7 +56,7 @@ def process(file_number,
             base_threshold,
             ):
         print("-----------------------------------------")
-        print("[ " + str(file_number) + " ] " + full_file_name)
+        print("[ " + str(file_number+1) + " ] " + full_file_name)
 
         min_value = float("inf")
         max_value = -float("inf")
