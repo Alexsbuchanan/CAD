@@ -38,8 +38,8 @@ class ContextOperator(object):
         num_added_contexts = 0
 
         for left_facts, right_facts in new_contexts_list:
-            left_hash = left_facts.__hash__()
-            right_hash = right_facts.__hash__()
+            left_hash = hash(left_facts)
+            right_hash = hash(right_facts)
 
             next_left_semi_context_number = len(self.semi_context_dicts[0])
             left_semi_context_id = self.semi_context_dicts[0].setdefault(left_hash, next_left_semi_context_number)
