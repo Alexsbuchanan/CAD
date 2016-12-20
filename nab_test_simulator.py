@@ -7,6 +7,7 @@ import math
 import multiprocessing
 import os
 import subprocess
+import time
 
 from cad_ose import ContextualAnomalyDetector
 
@@ -71,6 +72,8 @@ def process(file_number,
         csv_labels_reader = csv.reader(labels_file)
         next(csv_labels_reader)
 
+        start = time.time()
+
         anomaly_data = []
         with open(full_file_name, 'rb') as f:
             r = csv.reader(f)
@@ -88,7 +91,9 @@ def process(file_number,
 
         out_file_name = os.path.join(base_results_dir, proj_dir_descr, out_file_dsc[0], proj_dir_descr + "_" + out_file_dsc[1])
         write_anomaly_data(out_file_name, anomaly_data)
-        print '✓ [{0}]\t{1}'.format(file_number + 1, os.path.basename(full_file_name))
+
+        dt = datetime.timedelta(seconds=time.time()-start)
+        print '✓ [{0}]\t{1}\t{2}\t{3}'.format(file_number + 1, os.path.basename(full_file_name), dt, dt / len(anomaly_data))
 
 
 def data_stats(filename):
