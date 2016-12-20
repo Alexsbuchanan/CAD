@@ -80,7 +80,7 @@ def process(file_number,
             num_norm_value_bits=num_norm_value_bits
         )
 
-        anomaly_array = []
+        anomaly_data = []
         num_steps = 0
 
         out_file_dsc = full_file_name[len(base_data_dir) + 1:].split("/")
@@ -101,18 +101,21 @@ def process(file_number,
                 input_data = {"timestamp": input_data_date, "value": input_data_value}
 
                 results = cad.get_anomaly_score(input_data)
-                anomaly_array.append([num_steps, row[0], row[1], current_label, [results]])
+                anomaly_data.append([num_steps, row[0], row[1], current_label, [results]])
 
-        new_file_name = base_results_dir + "/" + proj_dir_descr + "/" + out_file_dsc[0] + "/" + proj_dir_descr + "_" + out_file_dsc[1]
-        ensure_dir(new_file_name)
-        with open(new_file_name, 'w') as csv_out_file:
-            csv_out_file.write("timestamp,value,anomaly_score,label\n")
-            for anomaly_scores in anomaly_array:
-                csv_out_file.write(
-                    anomaly_scores[1] + "," + anomaly_scores[2] + "," + str(anomaly_scores[4][0]) + "," +
-                    anomaly_scores[3] + "\n")
+        out_file_name = os.path.join(base_results_dir, proj_dir_descr, out_file_dsc[0], proj_dir_descr + "_" + out_file_dsc[1])
+        write_anomaly_data(out_file_name, anomaly_data)
+        print '✓ [{0}]\t{1}'.format(file_number + 1, os.path.basename(full_file_name))
 
-        print '→ [{0}] {1}'.format(file_number + 1, os.path.basename(full_file_name))
+
+def write_anomaly_data(out_file_name, anomaly_data):
+    ensure_dir(out_file_name)
+    with open(out_file_name, 'w') as csv_out_file:
+        csv_out_file.write("timestamp,value,anomaly_score,label\n")
+        for anomaly_scores in anomaly_data:
+            csv_out_file.write(
+                anomaly_scores[1] + "," + anomaly_scores[2] + "," + str(anomaly_scores[4][0]) + "," +
+                anomaly_scores[3] + "\n")
 
 
 def ensure_dir(path):
