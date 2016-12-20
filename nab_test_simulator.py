@@ -71,11 +71,11 @@ def process(file_number,
         out_file_dsc = full_file_name[len(base_data_dir) + 1:].split("/")
 
         labels_file = open(null_results_dir + "/" + out_file_dsc[0] + "/" + "null_" + out_file_dsc[1], 'rb')
-        csv_labels_reader = csv.reader(labels_file, delimiter=',')
+        csv_labels_reader = csv.reader(labels_file)
         next(csv_labels_reader)
 
         with open(full_file_name, 'rb') as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
+            csv_reader = csv.reader(csv_file)
             next(csv_reader)
             for row in csv_reader:
                 num_steps += 1
@@ -98,7 +98,7 @@ def data_stats(filename):
     max_ = -float('inf')
 
     with open(filename, 'rb') as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
+        csv_reader = csv.reader(csv_file)
         next(csv_reader)
         for i, row in enumerate(csv_reader):
             v = float(row[1])
