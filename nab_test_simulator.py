@@ -38,21 +38,6 @@ def main():
     subprocess.check_call(['python', 'run.py', '-d', detector_name, '--score', '--normalize', '--skipConfirmation'])
 
 
-def data_stats(filename):
-    min_ = float('inf')
-    max_ = -float('inf')
-
-    with open(filename, 'rb') as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        next(csv_reader)
-        for i, row in enumerate(csv_reader):
-            v = float(row[1])
-            min_ = min(v, min_)
-            max_ = max(v, max_)
-
-    return i + 1, min_, max_
-
-
 def process(file_number,
             full_file_name,
             base_data_dir,
@@ -108,14 +93,28 @@ def process(file_number,
         print '✓ [{0}]\t{1}'.format(file_number + 1, os.path.basename(full_file_name))
 
 
-def write_anomaly_data(out_file_name, anomaly_data):
-    ensure_dir(out_file_name)
-    with open(out_file_name, 'w') as csv_out_file:
-        csv_out_file.write("timestamp,value,anomaly_score,label\n")
+def data_stats(filename):
+    min_ = float('inf')
+    max_ = -float('inf')
+
+    with open(filename, 'rb') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        next(csv_reader)
+        for i, row in enumerate(csv_reader):
+            v = float(row[1])
+            min_ = min(v, min_)
+            max_ = max(v, max_)
+
+    return i + 1, min_, max_
+
+
+def write_anomaly_data(filename, anomaly_data):
+    ensure_dir(filename)
+    with open(filename, 'w') as f:
+        w = csv.writer(f)
+        w.writerow(['timestamp', 'value', 'anomaly_score', 'label'])
         for anomaly_scores in anomaly_data:
-            csv_out_file.write(
-                anomaly_scores[1] + "," + anomaly_scores[2] + "," + str(anomaly_scores[4][0]) + "," +
-                anomaly_scores[3] + "\n")
+            w.writerow([anomaly_scores[1], anomaly_scores[2], anomaly_scores[4][0], anomaly_scores[3]])
 
 
 def ensure_dir(path):
