@@ -75,7 +75,7 @@ def process(file_number,
         with open(full_file_name, 'rb') as f:
             r = csv.reader(f)
             next(r)
-            for i, row in enumerate(r):
+            for row in r:
                 input_data = {
                     'timestamp': datetime.datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S'),
                     'value':     float(row[1]),
@@ -84,7 +84,7 @@ def process(file_number,
                 score = cad.get_anomaly_score(input_data)
 
                 cur_label = next(csv_labels_reader)[3]
-                anomaly_data.append([i + 1, row[0], row[1], cur_label, [score]])
+                anomaly_data.append([row[0], row[1], score, cur_label])
 
         out_file_name = os.path.join(base_results_dir, proj_dir_descr, out_file_dsc[0], proj_dir_descr + "_" + out_file_dsc[1])
         write_anomaly_data(out_file_name, anomaly_data)
@@ -111,8 +111,7 @@ def write_anomaly_data(filename, anomaly_data):
     with open(filename, 'w') as f:
         w = csv.writer(f)
         w.writerow(['timestamp', 'value', 'anomaly_score', 'label'])
-        for d in anomaly_data:
-            w.writerow([d[1], d[2], d[4][0], d[3]])
+        w.writerows(anomaly_data)
 
 
 def ensure_dir(path):
