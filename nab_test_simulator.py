@@ -29,14 +29,16 @@ def main():
 
     full_file_names = glob.glob(os.path.join(params['base_data_dir'], '**/*.csv'))
 
-    def process_wrap(args):
-        process(*args, **params)
-
     pool = multiprocessing.Pool()
-    pool.map_async(process_wrap, enumerate(full_file_names)).get(999999999)
+    pool.map_async(process_wrap,  ((i, fn, params) for i, fn in enumerate(full_file_names))).get(999999999)
 
     os.chdir('../NAB')
     subprocess.check_call(['python', 'run.py', '-d', detector_name, '--score', '--normalize', '--skipConfirmation'])
+
+
+def process_wrap(args):
+    i, fn, params = args
+    process(i, fn, **params)
 
 
 def process(file_number,
