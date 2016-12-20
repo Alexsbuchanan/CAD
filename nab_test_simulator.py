@@ -66,7 +66,7 @@ def process(file_number,
             ):
         nrows, min_, max_ = data_stats(full_file_name)
 
-        print '[{0}] {1} — {2} to {3}'.format(file_number+1, full_file_name, min_, max_)
+        print '  [{0}]\t{1:.3f}\t{2:.3f}\t{3}'.format(file_number+1, min_, max_, os.path.basename(full_file_name))
 
         learning_period = min(math.floor(0.15 * nrows), 0.15 * 5000)
 
@@ -111,7 +111,8 @@ def process(file_number,
                 csv_out_file.write(
                     anomaly_scores[1] + "," + anomaly_scores[2] + "," + str(anomaly_scores[4][0]) + "," +
                     anomaly_scores[3] + "\n")
-        print ("saved to: " + new_file_name)
+
+        print '→ [{0}] {1}'.format(file_number + 1, os.path.basename(full_file_name))
 
 
 def ensure_dir(path):
