@@ -38,6 +38,21 @@ def main():
     subprocess.check_call(['python', 'run.py', '-d', detector_name, '--score', '--normalize', '--skipConfirmation'])
 
 
+def data_stats(filename):
+    min_ = float('inf')
+    max_ = -float('inf')
+
+    with open(filename, 'rb') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        next(csv_reader)
+        for i, row in enumerate(csv_reader):
+            v = float(row[1])
+            min_ = min(v, min_)
+            max_ = max(v, max_)
+
+    return i + 1, min_, max_
+
+
 def process(file_number,
             full_file_name,
             base_data_dir,
@@ -49,26 +64,15 @@ def process(file_number,
             num_norm_value_bits,
             base_threshold,
             ):
-        print("-----------------------------------------")
-        print("[ " + str(file_number+1) + " ] " + full_file_name)
+        nrows, min_, max_ = data_stats(full_file_name)
 
-        min_value = float("inf")
-        max_value = -float("inf")
-        with open(full_file_name, 'rb') as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            next(csv_reader)
-            for row_number, row in enumerate(csv_reader, start=1):
-                input_data_value = float(row[1])
-                min_value = min(input_data_value, min_value)
-                max_value = max(input_data_value, max_value)
+        print '[{0}] {1} — {2} to {3}'.format(file_number+1, full_file_name, min_, max_)
 
-        learning_period = min(math.floor(0.15 * row_number), 0.15 * 5000)
-
-        print("min_value = " + str(min_value) + " : max_value = " + str(max_value))
+        learning_period = min(math.floor(0.15 * nrows), 0.15 * 5000)
 
         cad = ContextualAnomalyDetector(
-            min_value=min_value,
-            max_value=max_value,
+            min_value=min_,
+            max_value=max_,
             base_threshold=base_threshold,
             rest_period=learning_period / 5.0,
             max_left_semi_ctxs_length=max_left_semi_ctxs_length,
