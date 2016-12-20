@@ -14,7 +14,7 @@ from cad_ose import ContextualAnomalyDetector
 
 def main():
     git_version = subprocess.check_output(['git', 'describe', '--always']).strip()
-    detector_name = 'CAD-{0}'.format(git_version)
+    detector_name = 'CAD-{}'.format(git_version)
 
     params = {
         'base_data_dir':              '../NAB/data',
@@ -52,7 +52,7 @@ def process(file_number,
             ):
         nrows, min_, max_ = data_stats(full_file_name)
 
-        print '  [{0}]\t{1:.3f}\t{2:.3f}\t{3}'.format(file_number+1, min_, max_, os.path.basename(full_file_name))
+        print '  [{}]\t{:.3f}\t{:.3f}\t{}'.format(file_number+1, min_, max_, os.path.basename(full_file_name))
 
         learning_period = min(math.floor(0.15 * nrows), 0.15 * 5000)
 
@@ -93,7 +93,7 @@ def process(file_number,
         write_anomaly_data(out_file_name, anomaly_data)
 
         dt = datetime.timedelta(seconds=time.time()-start)
-        print '✓ [{0}]\t{1}\t{2}\t{3}'.format(file_number + 1, os.path.basename(full_file_name), dt, dt / len(anomaly_data))
+        print '✓ [{}]\t{}\t{}\t{}'.format(file_number + 1, os.path.basename(full_file_name), dt, dt / len(anomaly_data))
 
 
 def data_stats(filename):
