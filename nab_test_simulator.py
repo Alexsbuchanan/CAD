@@ -72,19 +72,19 @@ def process(file_number,
         next(csv_labels_reader)
 
         anomaly_data = []
-        with open(full_file_name, 'rb') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            next(csv_reader)
-            for i, row in enumerate(csv_reader):
-                current_label = next(csv_labels_reader)[3]
-
+        with open(full_file_name, 'rb') as f:
+            r = csv.reader(f)
+            next(r)
+            for i, row in enumerate(r):
                 input_data = {
                     'timestamp': datetime.datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S'),
                     'value':     float(row[1]),
                 }
 
-                results = cad.get_anomaly_score(input_data)
-                anomaly_data.append([i + 1, row[0], row[1], current_label, [results]])
+                score = cad.get_anomaly_score(input_data)
+
+                cur_label = next(csv_labels_reader)[3]
+                anomaly_data.append([i + 1, row[0], row[1], cur_label, [score]])
 
         out_file_name = os.path.join(base_results_dir, proj_dir_descr, out_file_dsc[0], proj_dir_descr + "_" + out_file_dsc[1])
         write_anomaly_data(out_file_name, anomaly_data)
@@ -111,8 +111,8 @@ def write_anomaly_data(filename, anomaly_data):
     with open(filename, 'w') as f:
         w = csv.writer(f)
         w.writerow(['timestamp', 'value', 'anomaly_score', 'label'])
-        for anomaly_scores in anomaly_data:
-            w.writerow([anomaly_scores[1], anomaly_scores[2], anomaly_scores[4][0], anomaly_scores[3]])
+        for d in anomaly_data:
+            w.writerow([d[1], d[2], d[4][0], d[3]])
 
 
 def ensure_dir(path):
