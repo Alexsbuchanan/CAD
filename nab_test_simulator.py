@@ -67,7 +67,7 @@ def process(file_number,
 
         out_file_dsc = full_file_name[len(base_data_dir) + 1:].split("/")
 
-        labels_file = open(null_results_dir + "/" + out_file_dsc[0] + "/" + "null_" + out_file_dsc[1], 'rb')
+        labels_file = open(os.path.join(null_results_dir, out_file_dsc[0], "null_" + out_file_dsc[1]), 'rb')
         csv_labels_reader = csv.reader(labels_file)
         next(csv_labels_reader)
 
