@@ -1,17 +1,23 @@
 # -*- coding: utf-8 -*-
 
+import recordclass
+
+
+Half = recordclass.recordclass('Half', 'facts_dict semi_ctx_dict semi_ctx_values_list crossed_semi_ctxs_list')
+
 
 class ContextOperator(object):
     def __init__(self, max_left_semi_ctxs_length):
         self.max_left_semi_ctxs_length = max_left_semi_ctxs_length
 
-        self.facts_dicts = [{}, {}]
-        self.semi_ctx_dicts = [{}, {}]
-        self.semi_ctx_values_lists = [[], []]
-        self.crossed_semi_ctxs_lists = [[], []]
+        self.left = Half({}, {}, [], [])
+        self.right = Half({}, {}, [], [])
         self.ctxs_values_list = []
 
         self.new_ctx_id = False
+
+    def choose_half(self, left_or_right):
+        return self.left if left_or_right == 0 else self.right
 
     def get_ctx_by_facts(self, new_ctxs_list, zerolevel):
         """
@@ -38,26 +44,26 @@ class ContextOperator(object):
             left_hash = hash(left_facts)
             right_hash = hash(right_facts)
 
-            next_left_semi_ctx_number = len(self.semi_ctx_dicts[0])
-            left_semi_ctx_id = self.semi_ctx_dicts[0].setdefault(left_hash, next_left_semi_ctx_number)
+            next_left_semi_ctx_number = len(self.left.semi_ctx_dict)
+            left_semi_ctx_id = self.left.semi_ctx_dict.setdefault(left_hash, next_left_semi_ctx_number)
             if left_semi_ctx_id == next_left_semi_ctx_number:
                 left_semi_ctx_values = [[], len(left_facts), 0, {}]
-                self.semi_ctx_values_lists[0].append(left_semi_ctx_values)
+                self.left.semi_ctx_values_list.append(left_semi_ctx_values)
                 for fact in left_facts:
-                    semi_ctx_list = self.facts_dicts[0].setdefault(fact, [])
+                    semi_ctx_list = self.left.facts_dict.setdefault(fact, [])
                     semi_ctx_list.append(left_semi_ctx_values)
 
-            next_right_semi_ctx_number = len(self.semi_ctx_dicts[1])
-            right_semi_ctx_id = self.semi_ctx_dicts[1].setdefault(right_hash, next_right_semi_ctx_number)
+            next_right_semi_ctx_number = len(self.right.semi_ctx_dict)
+            right_semi_ctx_id = self.right.semi_ctx_dict.setdefault(right_hash, next_right_semi_ctx_number)
             if right_semi_ctx_id == next_right_semi_ctx_number:
                 right_semi_ctx_values = [[], len(right_facts), 0]
-                self.semi_ctx_values_lists[1].append(right_semi_ctx_values)
+                self.right.semi_ctx_values_list.append(right_semi_ctx_values)
                 for fact in right_facts:
-                    semi_ctx_list = self.facts_dicts[1].setdefault(fact, [])
+                    semi_ctx_list = self.right.facts_dict.setdefault(fact, [])
                     semi_ctx_list.append(right_semi_ctx_values)
 
             next_free_ctx_id_number = len(self.ctxs_values_list)
-            ctx_id = self.semi_ctx_values_lists[0][left_semi_ctx_id][3].setdefault(right_semi_ctx_id, next_free_ctx_id_number)
+            ctx_id = self.left.semi_ctx_values_list[left_semi_ctx_id][3].setdefault(right_semi_ctx_id, next_free_ctx_id_number)
 
             if ctx_id == next_free_ctx_id_number:
                 num_added_ctxs += 1
@@ -89,17 +95,19 @@ class ContextOperator(object):
             new_predictions = set()
             prediction_ctxs = []
 
-        for semi_ctx_values in self.crossed_semi_ctxs_lists[left_or_right]:
+        semi = self.choose_half(left_or_right)
+
+        for semi_ctx_values in semi.crossed_semi_ctxs_list:
             semi_ctx_values[0] = []
             semi_ctx_values[2] = 0
 
         for fact in facts_list:
-            for semi_ctx_values in self.facts_dicts[left_or_right].get(fact, []):
+            for semi_ctx_values in semi.facts_dict.get(fact, []):
                 semi_ctx_values[0].append(fact)
 
         new_crossed_values = []
 
-        for semi_ctx_values in self.semi_ctx_values_lists[left_or_right]:
+        for semi_ctx_values in semi.semi_ctx_values_list:
             len_semi_ctx_values0 = len(semi_ctx_values[0])
             semi_ctx_values[2] = len_semi_ctx_values0
             if len_semi_ctx_values0 > 0:
@@ -117,7 +125,7 @@ class ContextOperator(object):
                         elif curr_pred_weight == max_pred_weight:
                             prediction_ctxs.append(ctx_values)
 
-        self.crossed_semi_ctxs_lists[left_or_right] = new_crossed_values
+        semi.crossed_semi_ctxs_list = new_crossed_values
 
         if left_or_right:
             return self.update_ctxs_and_get_active(new_ctx_flag)
@@ -158,12 +166,12 @@ class ContextOperator(object):
 
         potential_new_ctx_list = []
 
-        for left_semi_ctx_values in self.crossed_semi_ctxs_lists[0]:
+        for left_semi_ctx_values in self.left.crossed_semi_ctxs_list:
             for right_semi_ctx_id, ctx_id in left_semi_ctx_values[3].iteritems():
 
                 if self.new_ctx_id != ctx_id:
                     ctx_values = self.ctxs_values_list[ctx_id]
-                    right_semi_ctx_value0,  right_semi_ctx_value1, right_semi_ctx_value2 = self.semi_ctx_values_lists[1][right_semi_ctx_id]
+                    right_semi_ctx_value0,  right_semi_ctx_value1, right_semi_ctx_value2 = self.right.semi_ctx_values_list[right_semi_ctx_id]
 
                     if left_semi_ctx_values[1] == left_semi_ctx_values[2]:
                         num_selected_ctx += 1
