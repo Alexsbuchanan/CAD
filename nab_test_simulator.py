@@ -16,14 +16,14 @@ def main():
     detector_name = 'CAD-{0}'.format(git_version)
 
     params = {
-        'base_data_dir':                 '../NAB/data',
-        'base_results_dir':              '../NAB/results',
-        'null_results_dir':              '../NAB/results/null',
-        'proj_dir_descr':                detector_name,
-        'max_left_semi_contexts_length':  7,
-        'max_active_neurons_num':        15,
-        'num_norm_value_bits':            3,
-        'base_threshold':                 0.75,
+        'base_data_dir':              '../NAB/data',
+        'base_results_dir':           '../NAB/results',
+        'null_results_dir':           '../NAB/results/null',
+        'proj_dir_descr':             detector_name,
+        'max_left_semi_ctxs_length':  7,
+        'max_active_neurons_num':     15,
+        'num_norm_value_bits':        3,
+        'base_threshold':             0.75,
     }
 
     full_file_names = glob.glob(os.path.join(params['base_data_dir'], '**/*.csv'))
@@ -44,7 +44,7 @@ def process(file_number,
             base_results_dir,
             null_results_dir,
             proj_dir_descr,
-            max_left_semi_contexts_length,
+            max_left_semi_ctxs_length,
             max_active_neurons_num,
             num_norm_value_bits,
             base_threshold,
@@ -71,7 +71,7 @@ def process(file_number,
             max_value=max_value,
             base_threshold=base_threshold,
             rest_period=learning_period / 5.0,
-            max_left_semi_contexts_length=max_left_semi_contexts_length,
+            max_left_semi_ctxs_length=max_left_semi_ctxs_length,
             max_active_neurons_num=max_active_neurons_num,
             num_norm_value_bits=num_norm_value_bits
         )
