@@ -65,20 +65,17 @@ def process(file_number,
             num_norm_value_bits=num_norm_value_bits
         )
 
-        anomaly_data = []
-        num_steps = 0
-
         out_file_dsc = full_file_name[len(base_data_dir) + 1:].split("/")
 
         labels_file = open(null_results_dir + "/" + out_file_dsc[0] + "/" + "null_" + out_file_dsc[1], 'rb')
         csv_labels_reader = csv.reader(labels_file)
         next(csv_labels_reader)
 
+        anomaly_data = []
         with open(full_file_name, 'rb') as csv_file:
             csv_reader = csv.reader(csv_file)
             next(csv_reader)
-            for row in csv_reader:
-                num_steps += 1
+            for i, row in enumerate(csv_reader):
                 current_label = next(csv_labels_reader)[3]
 
                 input_data_date = datetime.datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
@@ -86,7 +83,7 @@ def process(file_number,
                 input_data = {"timestamp": input_data_date, "value": input_data_value}
 
                 results = cad.get_anomaly_score(input_data)
-                anomaly_data.append([num_steps, row[0], row[1], current_label, [results]])
+                anomaly_data.append([i + 1, row[0], row[1], current_label, [results]])
 
         out_file_name = os.path.join(base_results_dir, proj_dir_descr, out_file_dsc[0], proj_dir_descr + "_" + out_file_dsc[1])
         write_anomaly_data(out_file_name, anomaly_data)
