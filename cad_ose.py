@@ -69,10 +69,10 @@ class ContextualAnomalyDetector(object):
         return new_predictions, [percent_selected_ctx_active, percent_added_ctx_to_uniq_pot_new]
 
     def get_anomaly_score(self, input_data):
-        norm_input_value = int((input_data["value"] - self.min_value) / self.min_value_step)
-        bin_input_norm_value = bin(norm_input_value).lstrip("0b").rjust(self.num_norm_value_bits, "0")
+        norm_input_value = int((input_data['value'] - self.min_value) / self.min_value_step)
+        bin_input_norm_value = bin(norm_input_value).lstrip('0b').rjust(self.num_norm_value_bits, '0')
 
-        out_sens = set(2**16 + s_num * 2 + (1 if cur_sym == "1" else 0) for s_num, cur_sym in enumerate(reversed(bin_input_norm_value)))
+        out_sens = set(2**16 + s_num * 2 + (1 if cur_sym == '1' else 0) for s_num, cur_sym in enumerate(reversed(bin_input_norm_value)))
 
         prediction_error = sum(2 ** ((fact-65536) / 2.0) for fact in out_sens if fact not in self.last_predicted_facts) / self.max_bin_value
 
