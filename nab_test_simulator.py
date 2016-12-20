@@ -78,9 +78,10 @@ def process(file_number,
             for i, row in enumerate(csv_reader):
                 current_label = next(csv_labels_reader)[3]
 
-                input_data_date = datetime.datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
-                input_data_value = float(row[1])
-                input_data = {"timestamp": input_data_date, "value": input_data_value}
+                input_data = {
+                    'timestamp': datetime.datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S'),
+                    'value':     float(row[1]),
+                }
 
                 results = cad.get_anomaly_score(input_data)
                 anomaly_data.append([i + 1, row[0], row[1], current_label, [results]])
