@@ -28,10 +28,10 @@ class ContextualAnomalyDetector(object):
         self.result_values_history = [1.0]
 
     def step(self, input_facts):
-        curr_sens_facts = tuple(sorted(set(input_facts)))
+        cur_sens_facts = input_facts # input_facts must be distinct and sorted
 
-        if len(self.left_facts_group) > 0 and len(curr_sens_facts) > 0:
-            pot_new_zero_level_ctx = (self.left_facts_group, curr_sens_facts)
+        if len(self.left_facts_group) > 0 and len(cur_sens_facts) > 0:
+            pot_new_zero_level_ctx = (self.left_facts_group, cur_sens_facts)
             new_ctx_flag = self.ctx_operator.get_ctx_by_facts([pot_new_zero_level_ctx], zerolevel=1)
         else:
             pot_new_zero_level_ctx = False
@@ -39,7 +39,7 @@ class ContextualAnomalyDetector(object):
 
         active_ctxs, num_selected_ctx, potential_new_ctx_list = self.ctx_operator.cross_ctxs(
                                                                             left_or_right=1,
-                                                                            facts_list=curr_sens_facts,
+                                                                            facts_list=cur_sens_facts,
                                                                             new_ctx_flag=new_ctx_flag
                                                                         )
 
@@ -53,7 +53,7 @@ class ContextualAnomalyDetector(object):
         curr_neur_facts = set(2 ** 31 + fact for fact in active_neurons)
 
         self.left_facts_group = set()
-        self.left_facts_group.update(curr_sens_facts, curr_neur_facts)
+        self.left_facts_group.update(cur_sens_facts, curr_neur_facts)
         self.left_facts_group = tuple(sorted(self.left_facts_group))
 
         num_new_ctxs, new_predictions = self.ctx_operator.cross_ctxs(
@@ -72,7 +72,7 @@ class ContextualAnomalyDetector(object):
         norm_input_value = int((input_data['value'] - self.min_value) / self.min_value_step)
         bin_input_norm_value = bin(norm_input_value).lstrip('0b').rjust(self.num_norm_value_bits, '0')
 
-        out_sens = set(2**16 + s_num * 2 + (1 if cur_sym == '1' else 0) for s_num, cur_sym in enumerate(reversed(bin_input_norm_value)))
+        out_sens = tuple(2**16 + s_num * 2 + (1 if cur_sym == '1' else 0) for s_num, cur_sym in enumerate(reversed(bin_input_norm_value)))
 
         prediction_error = sum(2 ** ((fact-65536) / 2.0) for fact in out_sens if fact not in self.last_predicted_facts) / self.max_bin_value
 
