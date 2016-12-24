@@ -19,7 +19,6 @@ def main():
     params = {
         'base_data_dir':              '../NAB/data',
         'base_results_dir':           '../NAB/results',
-        'null_results_dir':           '../NAB/results/null',
         'proj_dir_descr':             detector_name,
         'max_left_semi_ctxs_length':  7,
         'max_active_neurons_num':     15,
@@ -45,7 +44,6 @@ def process(file_number,
             full_file_name,
             base_data_dir,
             base_results_dir,
-            null_results_dir,
             proj_dir_descr,
             max_left_semi_ctxs_length,
             max_active_neurons_num,
@@ -70,10 +68,6 @@ def process(file_number,
 
         out_file_dsc = full_file_name[len(base_data_dir) + 1:].split("/")
 
-        labels_file = open(os.path.join(null_results_dir, out_file_dsc[0], "null_" + out_file_dsc[1]), 'rb')
-        csv_labels_reader = csv.reader(labels_file)
-        next(csv_labels_reader)
-
         start = time.time()
 
         anomaly_data = []
@@ -88,8 +82,7 @@ def process(file_number,
 
                 score = cad.get_anomaly_score(input_data)
 
-                cur_label = next(csv_labels_reader)[3]
-                anomaly_data.append([row[0], row[1], score, cur_label])
+                anomaly_data.append([row[0], row[1], score])
 
         out_file_name = os.path.join(base_results_dir, proj_dir_descr, out_file_dsc[0], proj_dir_descr + "_" + out_file_dsc[1])
         write_anomaly_data(out_file_name, anomaly_data)
