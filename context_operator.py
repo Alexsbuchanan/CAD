@@ -44,23 +44,19 @@ class ContextOperator(object):
             left_hash = hash(left_facts)
             right_hash = hash(right_facts)
 
-            next_left_semi_ctx_number = len(self.left.semi_ctx_dict)
-            left_semi_ctx_id = self.left.semi_ctx_dict.setdefault(left_hash, next_left_semi_ctx_number)
-            if left_semi_ctx_id == next_left_semi_ctx_number:
-                left_semi_ctx_values = [[], len(left_facts), 0, {}]
-                self.left.semi_ctx_values_list.append(left_semi_ctx_values)
-                for fact in left_facts:
-                    semi_ctx_list = self.left.facts_dict.setdefault(fact, [])
-                    semi_ctx_list.append(left_semi_ctx_values)
+            def process_half(facts, hash_, half):
+                next_semi_ctx_number = len(half.semi_ctx_dict)
+                semi_ctx_id = half.semi_ctx_dict.setdefault(hash_, next_semi_ctx_number)
+                if semi_ctx_id == next_semi_ctx_number:
+                    semi_ctx_values = [[], len(facts), 0, {}] if half == self.left else [[], len(facts), 0]
+                    half.semi_ctx_values_list.append(semi_ctx_values)
+                    for fact in facts:
+                        semi_ctx_list = half.facts_dict.setdefault(fact, [])
+                        semi_ctx_list.append(semi_ctx_values)
+                return semi_ctx_id
 
-            next_right_semi_ctx_number = len(self.right.semi_ctx_dict)
-            right_semi_ctx_id = self.right.semi_ctx_dict.setdefault(right_hash, next_right_semi_ctx_number)
-            if right_semi_ctx_id == next_right_semi_ctx_number:
-                right_semi_ctx_values = [[], len(right_facts), 0]
-                self.right.semi_ctx_values_list.append(right_semi_ctx_values)
-                for fact in right_facts:
-                    semi_ctx_list = self.right.facts_dict.setdefault(fact, [])
-                    semi_ctx_list.append(right_semi_ctx_values)
+            left_semi_ctx_id = process_half(left_facts, left_hash, self.left)
+            right_semi_ctx_id = process_half(right_facts, right_hash, self.right)
 
             next_free_ctx_id_number = len(self.ctxs_values_list)
             ctx_id = self.left.semi_ctx_values_list[left_semi_ctx_id][3].setdefault(right_semi_ctx_id, next_free_ctx_id_number)
