@@ -1,15 +1,13 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import csv
 import datetime
 import glob
-import math
 import multiprocessing
 import os
 import subprocess
 import time
-
-from cad_ose import ContextualAnomalyDetector
 
 
 def main():
@@ -17,13 +15,10 @@ def main():
     detector_name = 'CAD-{}'.format(git_version)
 
     params = {
-        'base_data_dir':              '../NAB/data',
-        'base_results_dir':           '../NAB/results',
-        'detector_name':              detector_name,
-        'max_left_semi_ctxs_length':  7,
-        'max_active_neurons_num':     15,
-        'num_norm_value_bits':        3,
-        'base_threshold':             0.75,
+        'base_data_dir':    '../NAB/data',
+        'base_results_dir': '../NAB/results',
+        'detector_cmd':     './cad_driver.py',
+        'detector_name':    detector_name,
     }
 
     full_file_names = glob.glob(os.path.join(params['base_data_dir'], '**/*.csv'))
@@ -44,51 +39,25 @@ def process(file_number,
             full_file_name,
             base_data_dir,
             base_results_dir,
-            detector_name,
-            max_left_semi_ctxs_length,
-            max_active_neurons_num,
-            num_norm_value_bits,
-            base_threshold,
-            ):
+            detector_cmd,
+            detector_name):
         nrows, min_, max_ = data_stats(full_file_name)
 
-        print '  [{}]\t{:.3f}\t{:.3f}\t{}'.format(file_number+1, min_, max_, os.path.basename(full_file_name))
-
-        learning_period = min(math.floor(0.15 * nrows), 0.15 * 5000)
-
-        cad = ContextualAnomalyDetector(
-            min_value=min_,
-            max_value=max_,
-            base_threshold=base_threshold,
-            rest_period=learning_period / 5.0,
-            max_left_semi_ctxs_length=max_left_semi_ctxs_length,
-            max_active_neurons_num=max_active_neurons_num,
-            num_norm_value_bits=num_norm_value_bits
-        )
+        print '  [{}]\t{:.3f}\t{:.3f}\t{}'.format(file_number + 1, min_, max_, os.path.basename(full_file_name))
 
         out_file_dsc = full_file_name[len(base_data_dir) + 1:].split("/")
+        out_file_name = os.path.join(base_results_dir, detector_name, out_file_dsc[0], detector_name + "_" + out_file_dsc[1])
+        ensure_dir(out_file_name)
 
         start = time.time()
 
-        anomaly_data = []
-        with open(full_file_name, 'rb') as f:
-            r = csv.reader(f)
-            next(r)
-            for row in r:
-                input_data = {
-                    'timestamp': datetime.datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S'),
-                    'value':     float(row[1]),
-                }
-
-                score = cad.get_anomaly_score(input_data)
-
-                anomaly_data.append([row[0], row[1], score])
-
-        out_file_name = os.path.join(base_results_dir, detector_name, out_file_dsc[0], detector_name + "_" + out_file_dsc[1])
-        write_anomaly_data(out_file_name, anomaly_data)
+        with open(full_file_name) as in_, open(out_file_name, 'w') as out:
+            out.write('timestamp,value,anomaly_score\n')
+            out.flush()
+            subprocess.check_call([detector_cmd, str(nrows), str(min_), str(max_)], stdin=in_, stdout=out)
 
         dt = datetime.timedelta(seconds=time.time()-start)
-        print '✓ [{}]\t{}\t{}\t{}'.format(file_number + 1, os.path.basename(full_file_name), dt, dt / len(anomaly_data))
+        print '✓ [{}]\t{}\t{}'.format(file_number + 1, os.path.basename(full_file_name), dt)
 
 
 def data_stats(filename):
@@ -104,14 +73,6 @@ def data_stats(filename):
             max_ = max(v, max_)
 
     return i + 1, min_, max_
-
-
-def write_anomaly_data(filename, anomaly_data):
-    ensure_dir(filename)
-    with open(filename, 'w') as f:
-        w = csv.writer(f)
-        w.writerow(['timestamp', 'value', 'anomaly_score', 'label'])
-        w.writerows(anomaly_data)
 
 
 def ensure_dir(path):
