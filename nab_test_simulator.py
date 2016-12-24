@@ -3,6 +3,7 @@
 
 import csv
 import datetime
+import errno
 import glob
 import multiprocessing
 import os
@@ -77,8 +78,13 @@ def data_stats(filename):
 
 def ensure_dir(path):
     dirname = os.path.dirname(path)
-    if not os.path.exists(dirname):
+    try:
         os.makedirs(dirname)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(dirname):
+            pass
+        else:
+            raise
 
 
 if __name__ == '__main__':
