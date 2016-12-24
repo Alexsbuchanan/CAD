@@ -4,6 +4,7 @@ import recordclass
 
 
 Half = recordclass.recordclass('Half', 'facts_dict semi_ctx_dict semi_ctx_values_list crossed_semi_ctxs_list')
+ActiveCtx = recordclass.recordclass('ActiveCtx', 'a0 a1 a2 a3')
 
 
 class ContextOperator(object):
@@ -178,7 +179,7 @@ class ContextOperator(object):
 
                             if right_semi_ctx_value1 == right_semi_ctx_value2:
                                 ctx_values[2] += 1
-                                active_ctxs.append([ctx_id, ctx_values[2], ctx_values[5], ctx_values[6]])
+                                active_ctxs.append(ActiveCtx(ctx_id, ctx_values[2], ctx_values[5], ctx_values[6]))
 
                             elif ctx_values[4] and new_ctx_flag and left_semi_ctx_values[2] <= self.max_left_semi_ctxs_length:
                                 potential_new_ctx_list.append((tuple(left_semi_ctx_values[0]), tuple(right_semi_ctx_value0)))
