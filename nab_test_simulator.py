@@ -19,7 +19,7 @@ def main():
     params = {
         'base_data_dir':              '../NAB/data',
         'base_results_dir':           '../NAB/results',
-        'proj_dir_descr':             detector_name,
+        'detector_name':              detector_name,
         'max_left_semi_ctxs_length':  7,
         'max_active_neurons_num':     15,
         'num_norm_value_bits':        3,
@@ -44,7 +44,7 @@ def process(file_number,
             full_file_name,
             base_data_dir,
             base_results_dir,
-            proj_dir_descr,
+            detector_name,
             max_left_semi_ctxs_length,
             max_active_neurons_num,
             num_norm_value_bits,
@@ -84,7 +84,7 @@ def process(file_number,
 
                 anomaly_data.append([row[0], row[1], score])
 
-        out_file_name = os.path.join(base_results_dir, proj_dir_descr, out_file_dsc[0], proj_dir_descr + "_" + out_file_dsc[1])
+        out_file_name = os.path.join(base_results_dir, detector_name, out_file_dsc[0], detector_name + "_" + out_file_dsc[1])
         write_anomaly_data(out_file_name, anomaly_data)
 
         dt = datetime.timedelta(seconds=time.time()-start)
