@@ -47,9 +47,7 @@ SemiCtx = recordclass.recordclass('SemiCtx', [
 
 ActiveCtx = recordclass.recordclass('ActiveCtx', [
     'ctx_id',
-    'a1',
-    'left_hash',
-    'right_hash'
+    'a1'
 ])
 
 
@@ -224,7 +222,7 @@ class ContextOperator(object):
 
                             if rsemi_ctx_values.init_nfacts == rsemi_ctx_values.cur_nfacts:
                                 ctx_values.c2 += 1
-                                active_ctxs.append(ActiveCtx(ctx_id, ctx_values.c2, ctx_values.left_hash, ctx_values.right_hash))
+                                active_ctxs.append(ActiveCtx(ctx_id, ctx_values.c2))
 
                             elif ctx_values.zerolevel and new_ctx_flag and lsemi_ctx_values.cur_nfacts <= self.max_lsemi_ctxs_len:
                                 potential_new_ctx_list.append((tuple(lsemi_ctx_values.facts), tuple(rsemi_ctx_values.facts)))
