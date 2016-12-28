@@ -24,8 +24,8 @@ import recordclass
 Half = recordclass.recordclass('Half', [
     'fact_to_semi_ctx',
     'facts_hash_to_semi_ctx_id',
-    'semi_ctx_values_list',  # index == semi_ctx_id
-    'crossed_semi_ctxs_list'
+    'semi_ctxs',  # index == semi_ctx_id
+    'crossed_semi_ctxs'
 ])
 
 Ctx = recordclass.recordclass('Ctx', [
@@ -56,7 +56,7 @@ class ContextOperator(object):
 
         self.left = Half({}, {}, [], [])
         self.right = Half({}, {}, [], [])
-        self.ctxs_values_list = []
+        self.ctxs = []
 
         self.new_ctx_id = False
 
@@ -93,7 +93,7 @@ class ContextOperator(object):
                 semi_ctx_id = half.facts_hash_to_semi_ctx_id.setdefault(hash_, next_semi_ctx_number)
                 if semi_ctx_id == next_semi_ctx_number:
                     semi_ctx = SemiCtx([], len(facts), {} if half == self.left else None)
-                    half.semi_ctx_values_list.append(semi_ctx)
+                    half.semi_ctxs.append(semi_ctx)
                     for fact in facts:
                         semi_ctx_list = half.fact_to_semi_ctx.setdefault(fact, [])
                         semi_ctx_list.append(semi_ctx)
@@ -102,19 +102,19 @@ class ContextOperator(object):
             lsemi_ctx_id = process_half(left_facts, left_hash, self.left)
             rsemi_ctx_id = process_half(right_facts, right_hash, self.right)
 
-            next_free_ctx_id_number = len(self.ctxs_values_list)
-            ctx_id = self.left.semi_ctx_values_list[lsemi_ctx_id].rsemi_ctx_id_to_ctx_id.setdefault(rsemi_ctx_id, next_free_ctx_id_number)
+            next_free_ctx_id_number = len(self.ctxs)
+            ctx_id = self.left.semi_ctxs[lsemi_ctx_id].rsemi_ctx_id_to_ctx_id.setdefault(rsemi_ctx_id, next_free_ctx_id_number)
 
             if ctx_id == next_free_ctx_id_number:
                 num_added_ctxs += 1
                 ctx = Ctx(0, 0, 0, right_facts, zerolevel, left_hash, right_hash)
 
-                self.ctxs_values_list.append(ctx)
+                self.ctxs.append(ctx)
                 if zerolevel:
                     self.new_ctx_id = ctx_id
                     return True
             else:
-                ctx = self.ctxs_values_list[ctx_id]
+                ctx = self.ctxs[ctx_id]
 
                 if zerolevel:
                     ctx.zerolevel = 1
@@ -137,7 +137,7 @@ class ContextOperator(object):
 
         semi = self.choose_half(left_or_right)
 
-        for semi_ctx in semi.crossed_semi_ctxs_list:
+        for semi_ctx in semi.crossed_semi_ctxs:
             semi_ctx.facts = []
 
         for fact in facts_list:
@@ -146,12 +146,12 @@ class ContextOperator(object):
 
         new_crossed_semi_ctxs = []
 
-        for semi_ctx in semi.semi_ctx_values_list:
+        for semi_ctx in semi.semi_ctxs:
             if len(semi_ctx.facts) > 0:
                 new_crossed_semi_ctxs.append(semi_ctx)
                 if left_or_right == 0 and semi_ctx.init_nfacts == len(semi_ctx.facts):
                     for ctx_id in semi_ctx.rsemi_ctx_id_to_ctx_id.itervalues():
-                        ctx = self.ctxs_values_list[ctx_id]
+                        ctx = self.ctxs[ctx_id]
 
                         curr_pred_weight = ctx.c1 / float(ctx.c0) if ctx.c0 > 0 else 0.0
 
@@ -162,7 +162,7 @@ class ContextOperator(object):
                         elif curr_pred_weight == max_pred_weight:
                             prediction_ctxs.append(ctx)
 
-        semi.crossed_semi_ctxs_list = new_crossed_semi_ctxs
+        semi.crossed_semi_ctxs = new_crossed_semi_ctxs
 
         if left_or_right:
             return self.update_ctxs_and_get_active(new_ctx_flag)
@@ -191,7 +191,7 @@ class ContextOperator(object):
                                         should be considered active and be
                                         recorded to the input stream of “neurons”
 
-        @return potential_new_ctx_list: list of contexts based on intersection
+        @return potential_new_ctxs:     list of contexts based on intersection
                                         between the left and the right zero-level
                                         semi-contexts, which are potentially new
                                         contexts requiring saving to the context
@@ -201,14 +201,14 @@ class ContextOperator(object):
         active_ctxs = []
         num_selected_ctx = 0
 
-        potential_new_ctx_list = []
+        potential_new_ctxs = []
 
-        for lsemi_ctx in self.left.crossed_semi_ctxs_list:
+        for lsemi_ctx in self.left.crossed_semi_ctxs:
             for rsemi_ctx_id, ctx_id in lsemi_ctx.rsemi_ctx_id_to_ctx_id.iteritems():
 
                 if self.new_ctx_id != ctx_id:
-                    ctx = self.ctxs_values_list[ctx_id]
-                    rsemi_ctx = self.right.semi_ctx_values_list[rsemi_ctx_id]
+                    ctx = self.ctxs[ctx_id]
+                    rsemi_ctx = self.right.semi_ctxs[rsemi_ctx_id]
 
                     if lsemi_ctx.init_nfacts == len(lsemi_ctx.facts):
                         num_selected_ctx += 1
@@ -222,11 +222,11 @@ class ContextOperator(object):
                                 active_ctxs.append(ActiveCtx(ctx_id, ctx.c2))
 
                             elif ctx.zerolevel and new_ctx_flag and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
-                                potential_new_ctx_list.append((tuple(lsemi_ctx.facts), tuple(rsemi_ctx.facts)))
+                                potential_new_ctxs.append((tuple(lsemi_ctx.facts), tuple(rsemi_ctx.facts)))
 
                     elif ctx.zerolevel and new_ctx_flag and len(rsemi_ctx.facts) > 0 and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
-                        potential_new_ctx_list.append((tuple(lsemi_ctx.facts), tuple(rsemi_ctx.facts)))
+                        potential_new_ctxs.append((tuple(lsemi_ctx.facts), tuple(rsemi_ctx.facts)))
 
         self.new_ctx_id = False
 
-        return active_ctxs, num_selected_ctx, potential_new_ctx_list
+        return active_ctxs, num_selected_ctx, potential_new_ctxs
