@@ -82,7 +82,7 @@ class ContextualAnomalyDetector(object):
 
         percent_added_ctx_to_uniq_pot_new = num_new_ctxs / float(num_uniq_pot_new_ctx) if new_ctx_flag and num_uniq_pot_new_ctx > 0 else 0.0
 
-        return new_predictions, [percent_selected_ctx_active, percent_added_ctx_to_uniq_pot_new]
+        return new_predictions, (percent_selected_ctx_active, percent_added_ctx_to_uniq_pot_new)
 
     def get_anomaly_score(self, input_data):
         norm_input_value = int((input_data['value'] - self.min_value) / self.min_value_step)
