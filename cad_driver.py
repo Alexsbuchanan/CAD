@@ -31,7 +31,7 @@ def main():
     max_ = float(sys.argv[3])
 
     base_threshold = 0.75
-    max_left_semi_ctxs_length = 7
+    max_lsemi_ctxs_length = 7
     max_active_neurons_num = 15
     num_norm_value_bits = 3
 
@@ -39,12 +39,12 @@ def main():
         min_=min_,
         max_=max_,
         base_threshold=base_threshold,
-        max_left_semi_ctxs_length=max_left_semi_ctxs_length,
+        max_lsemi_ctxs_length=max_lsemi_ctxs_length,
         max_active_neurons_num=max_active_neurons_num,
         num_norm_value_bits=num_norm_value_bits)
 
 
-def run(nrows, min_, max_, base_threshold, max_left_semi_ctxs_length, max_active_neurons_num, num_norm_value_bits):
+def run(nrows, min_, max_, base_threshold, max_lsemi_ctxs_length, max_active_neurons_num, num_norm_value_bits):
     learning_period = min(math.floor(0.15 * nrows), 0.15 * 5000)
 
     cad = ContextualAnomalyDetector(
@@ -52,7 +52,7 @@ def run(nrows, min_, max_, base_threshold, max_left_semi_ctxs_length, max_active
         max_value=max_,
         base_threshold=base_threshold,
         rest_period=learning_period / 5.0,
-        max_left_semi_ctxs_length=max_left_semi_ctxs_length,
+        max_lsemi_ctxs_length=max_lsemi_ctxs_length,
         max_active_neurons_num=max_active_neurons_num,
         num_norm_value_bits=num_norm_value_bits
     )
