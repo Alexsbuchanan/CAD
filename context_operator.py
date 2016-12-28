@@ -54,8 +54,8 @@ ActiveCtx = recordclass.recordclass('ActiveCtx', [
 
 
 class ContextOperator(object):
-    def __init__(self, max_lsemi_ctxs_length):
-        self.max_lsemi_ctxs_length = max_lsemi_ctxs_length
+    def __init__(self, max_lsemi_ctxs_len):
+        self.max_lsemi_ctxs_len = max_lsemi_ctxs_len
 
         self.left = Half({}, {}, [], [])
         self.right = Half({}, {}, [], [])
@@ -226,10 +226,10 @@ class ContextOperator(object):
                                 ctx_values.c2 += 1
                                 active_ctxs.append(ActiveCtx(ctx_id, ctx_values.c2, ctx_values.left_hash, ctx_values.right_hash))
 
-                            elif ctx_values.zerolevel and new_ctx_flag and lsemi_ctx_values.s2 <= self.max_lsemi_ctxs_length:
+                            elif ctx_values.zerolevel and new_ctx_flag and lsemi_ctx_values.s2 <= self.max_lsemi_ctxs_len:
                                 potential_new_ctx_list.append((tuple(lsemi_ctx_values.facts), tuple(rsemi_ctx_values.facts)))
 
-                    elif ctx_values.zerolevel and new_ctx_flag and rsemi_ctx_values.s2 > 0 and lsemi_ctx_values.s2 <= self.max_lsemi_ctxs_length:
+                    elif ctx_values.zerolevel and new_ctx_flag and rsemi_ctx_values.s2 > 0 and lsemi_ctx_values.s2 <= self.max_lsemi_ctxs_len:
                         potential_new_ctx_list.append((tuple(lsemi_ctx_values.facts), tuple(rsemi_ctx_values.facts)))
 
         self.new_ctx_id = False

@@ -22,7 +22,7 @@ from context_operator import ContextOperator
 
 
 class ContextualAnomalyDetector(object):
-    def __init__(self, min_value, max_value, base_threshold, rest_period, max_lsemi_ctxs_length, max_active_neurons_num, num_norm_value_bits):
+    def __init__(self, min_value, max_value, base_threshold, rest_period, max_lsemi_ctxs_len, max_active_neurons_num, num_norm_value_bits):
         self.min_value = float(min_value)
         self.max_value = float(max_value)
         self.rest_period = rest_period
@@ -38,7 +38,7 @@ class ContextualAnomalyDetector(object):
 
         self.left_facts_group = tuple()
 
-        self.ctx_operator = ContextOperator(max_lsemi_ctxs_length)
+        self.ctx_operator = ContextOperator(max_lsemi_ctxs_len)
 
         self.potential_new_ctxs = []
 
