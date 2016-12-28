@@ -21,11 +21,36 @@
 import recordclass
 
 
-Half = recordclass.recordclass('Half', 'facts_dict semi_ctx_dict semi_ctx_values_list crossed_semi_ctxs_list')
+Half = recordclass.recordclass('Half', [
+    'fact_to_semi_ctx',
+    'facts_hash_to_semi_ctx_id',
+    'semi_ctx_values_list',
+    'crossed_semi_ctxs_list'
+])
 
-Ctx = recordclass.recordclass('Ctx', 'c0 c1 c2 right_facts zerolevel left_hash right_hash')
-SemiCtx = recordclass.recordclass('SemiCtx', 's0 s1 s2 rsemi_ctx_id_to_ctx_id')
-ActiveCtx = recordclass.recordclass('ActiveCtx', 'ctx_id a1 left_hash right_hash')
+Ctx = recordclass.recordclass('Ctx', [
+    'c0',
+    'c1',
+    'c2',
+    'right_facts',
+    'zerolevel',
+    'left_hash',
+    'right_hash'
+])
+
+SemiCtx = recordclass.recordclass('SemiCtx', [
+    's0',
+    's1',
+    's2',
+    'rsemi_ctx_id_to_ctx_id'
+])
+
+ActiveCtx = recordclass.recordclass('ActiveCtx', [
+    'ctx_id',
+    'a1',
+    'left_hash',
+    'right_hash'
+])
 
 
 class ContextOperator(object):
@@ -67,13 +92,13 @@ class ContextOperator(object):
             right_hash = hash(right_facts)
 
             def process_half(facts, hash_, half):
-                next_semi_ctx_number = len(half.semi_ctx_dict)
-                semi_ctx_id = half.semi_ctx_dict.setdefault(hash_, next_semi_ctx_number)
+                next_semi_ctx_number = len(half.facts_hash_to_semi_ctx_id)
+                semi_ctx_id = half.facts_hash_to_semi_ctx_id.setdefault(hash_, next_semi_ctx_number)
                 if semi_ctx_id == next_semi_ctx_number:
                     semi_ctx_values = SemiCtx([], len(facts), 0, {} if half == self.left else None)
                     half.semi_ctx_values_list.append(semi_ctx_values)
                     for fact in facts:
-                        semi_ctx_list = half.facts_dict.setdefault(fact, [])
+                        semi_ctx_list = half.fact_to_semi_ctx.setdefault(fact, [])
                         semi_ctx_list.append(semi_ctx_values)
                 return semi_ctx_id
 
@@ -120,7 +145,7 @@ class ContextOperator(object):
             semi_ctx_values.s2 = 0
 
         for fact in facts_list:
-            for semi_ctx_values in semi.facts_dict.get(fact, []):
+            for semi_ctx_values in semi.fact_to_semi_ctx.get(fact, []):
                 semi_ctx_values[0].append(fact)
 
         new_crossed_values = []
