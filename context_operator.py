@@ -60,7 +60,7 @@ class ContextOperator(object):
 
         self.new_ctx_id = False
 
-    def choose_half(self, left_or_right):
+    def _choose_half(self, left_or_right):
         return self.left if left_or_right == 0 else self.right
 
     def get_ctx_by_facts(self, new_ctxs_list, zerolevel):
@@ -135,7 +135,7 @@ class ContextOperator(object):
             new_predictions = set()
             prediction_ctxs = []
 
-        semi = self.choose_half(left_or_right)
+        semi = self._choose_half(left_or_right)
 
         for semi_ctx in semi.crossed_semi_ctxs:
             semi_ctx.facts = []
@@ -165,13 +165,13 @@ class ContextOperator(object):
         semi.crossed_semi_ctxs = new_crossed_semi_ctxs
 
         if left_or_right:
-            return self.update_ctxs_and_get_active(new_ctx_flag)
+            return self._update_ctxs_and_get_active(new_ctx_flag)
         else:
             [new_predictions.update(ctx.right_facts) for ctx in prediction_ctxs]
 
             return num_new_ctxs, new_predictions
 
-    def update_ctxs_and_get_active(self, new_ctx_flag):
+    def _update_ctxs_and_get_active(self, new_ctx_flag):
         """
         This function reviews the list of previously selected left semi-contexts,
         updates the prediction results value of all contexts, including left
