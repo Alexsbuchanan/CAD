@@ -146,7 +146,7 @@ class ContextOperator(object):
 
         for fact in facts_list:
             for semi_ctx_values in semi.fact_to_semi_ctx.get(fact, []):
-                semi_ctx_values[0].append(fact)
+                semi_ctx_values.s0.append(fact)
 
         new_crossed_values = []
 
