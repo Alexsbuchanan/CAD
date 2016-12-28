@@ -45,11 +45,9 @@ class ContextualAnomalyDetector(object):
         self.last_predicted_facts = []
         self.result_values_history = [1.0]
 
-    def step(self, input_facts):
-        cur_sens_facts = input_facts # input_facts must be distinct and sorted
-
-        if len(self.left_facts_group) > 0 and len(cur_sens_facts) > 0:
-            pot_new_zero_level_ctx = (self.left_facts_group, cur_sens_facts)
+    def step(self, input_facts):  # input_facts must be distinct and sorted
+        if len(self.left_facts_group) > 0 and len(input_facts) > 0:
+            pot_new_zero_level_ctx = (self.left_facts_group, input_facts)
             new_ctx_flag = self.ctx_operator.get_ctx_by_facts([pot_new_zero_level_ctx], zerolevel=1)
         else:
             pot_new_zero_level_ctx = False
@@ -57,7 +55,7 @@ class ContextualAnomalyDetector(object):
 
         active_ctxs, num_selected_ctx, potential_new_ctx_list = self.ctx_operator.cross_ctxs(
                                                                             left_or_right=1,
-                                                                            facts_list=cur_sens_facts,
+                                                                            facts_list=input_facts,
                                                                             new_ctx_flag=new_ctx_flag
                                                                         )
 
@@ -71,7 +69,7 @@ class ContextualAnomalyDetector(object):
         curr_neur_facts = set(2 ** 31 + fact for fact in active_neurons)
 
         self.left_facts_group = set()
-        self.left_facts_group.update(cur_sens_facts, curr_neur_facts)
+        self.left_facts_group.update(input_facts, curr_neur_facts)
         self.left_facts_group = tuple(sorted(self.left_facts_group))
 
         num_new_ctxs, new_predictions = self.ctx_operator.cross_ctxs(
