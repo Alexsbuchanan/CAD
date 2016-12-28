@@ -39,7 +39,7 @@ Ctx = recordclass.recordclass('Ctx', [
 ])
 
 SemiCtx = recordclass.recordclass('SemiCtx', [
-    's0',
+    'facts',
     's1',
     's2',
     'rsemi_ctx_id_to_ctx_id'
@@ -141,17 +141,17 @@ class ContextOperator(object):
         semi = self.choose_half(left_or_right)
 
         for semi_ctx_values in semi.crossed_semi_ctxs_list:
-            semi_ctx_values.s0 = []
+            semi_ctx_values.facts = []
             semi_ctx_values.s2 = 0
 
         for fact in facts_list:
             for semi_ctx_values in semi.fact_to_semi_ctx.get(fact, []):
-                semi_ctx_values.s0.append(fact)
+                semi_ctx_values.facts.append(fact)
 
         new_crossed_values = []
 
         for semi_ctx_values in semi.semi_ctx_values_list:
-            semi_ctx_values.s2 = len(semi_ctx_values.s0)
+            semi_ctx_values.s2 = len(semi_ctx_values.facts)
             if semi_ctx_values.s2 > 0:
                 new_crossed_values.append(semi_ctx_values)
                 if left_or_right == 0 and semi_ctx_values.s1 == semi_ctx_values.s2:
@@ -227,10 +227,10 @@ class ContextOperator(object):
                                 active_ctxs.append(ActiveCtx(ctx_id, ctx_values.c2, ctx_values.left_hash, ctx_values.right_hash))
 
                             elif ctx_values.zerolevel and new_ctx_flag and lsemi_ctx_values.s2 <= self.max_lsemi_ctxs_length:
-                                potential_new_ctx_list.append((tuple(lsemi_ctx_values.s0), tuple(rsemi_ctx_values.s0)))
+                                potential_new_ctx_list.append((tuple(lsemi_ctx_values.facts), tuple(rsemi_ctx_values.facts)))
 
                     elif ctx_values.zerolevel and new_ctx_flag and rsemi_ctx_values.s2 > 0 and lsemi_ctx_values.s2 <= self.max_lsemi_ctxs_length:
-                        potential_new_ctx_list.append((tuple(lsemi_ctx_values.s0), tuple(rsemi_ctx_values.s0)))
+                        potential_new_ctx_list.append((tuple(lsemi_ctx_values.facts), tuple(rsemi_ctx_values.facts)))
 
         self.new_ctx_id = False
 
