@@ -46,7 +46,7 @@ SemiCtx = recordclass.recordclass('SemiCtx', [
 
 ActiveCtx = recordclass.recordclass('ActiveCtx', [
     'ctx_id',
-    'a1'
+    'ctx_c2'
 ])
 
 
