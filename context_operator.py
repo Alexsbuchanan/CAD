@@ -24,7 +24,7 @@ import recordclass
 Half = recordclass.recordclass('Half', [
     'fact_to_semi_ctx',
     'facts_hash_to_semi_ctx_id',
-    'semi_ctx_values_list',
+    'semi_ctx_values_list',  # index == semi_ctx_id
     'crossed_semi_ctxs_list'
 ])
 
