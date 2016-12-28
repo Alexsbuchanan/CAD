@@ -92,9 +92,9 @@ class ContextualAnomalyDetector(object):
 
         prediction_error = sum(2 ** ((fact-65536) / 2.0) for fact in out_sens if fact not in self.last_predicted_facts) / self.max_bin_value
 
-        self.last_predicted_facts, anomalyValues = self.step(out_sens)
+        self.last_predicted_facts, anomaly_values = self.step(out_sens)
 
-        current_anomaly_score = (1.0 - anomalyValues[0] + anomalyValues[1]) / 2.0 if prediction_error > 0 else 0.0
+        current_anomaly_score = (1.0 - anomaly_values[0] + anomaly_values[1]) / 2.0 if prediction_error > 0 else 0.0
 
         returned_anomaly_score = current_anomaly_score if max(self.result_values_history[-int(self.rest_period):]) < self.base_threshold else 0.0
         self.result_values_history.append(current_anomaly_score)
