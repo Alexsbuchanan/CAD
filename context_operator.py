@@ -23,9 +23,9 @@ import recordclass
 
 Half = recordclass.recordclass('Half', 'facts_dict semi_ctx_dict semi_ctx_values_list crossed_semi_ctxs_list')
 
-Ctx = recordclass.recordclass('Ctx', 'c0 c1 c2 c3 c4 c5 c6')
+Ctx = recordclass.recordclass('Ctx', 'c0 c1 c2 c3 zerolevel left_hash right_hash')
 SemiCtx = recordclass.recordclass('SemiCtx', 's0 s1 s2 s3')
-ActiveCtx = recordclass.recordclass('ActiveCtx', 'a0 a1 a2 a3')
+ActiveCtx = recordclass.recordclass('ActiveCtx', 'ctx_id a1 left_hash right_hash')
 
 
 class ContextOperator(object):
@@ -95,7 +95,7 @@ class ContextOperator(object):
                 ctx_values = self.ctxs_values_list[ctx_id]
 
                 if zerolevel:
-                    ctx_values.c4 = 1
+                    ctx_values.zerolevel = 1
                     return False
 
         return num_added_ctxs
@@ -126,11 +126,10 @@ class ContextOperator(object):
         new_crossed_values = []
 
         for semi_ctx_values in semi.semi_ctx_values_list:
-            len_semi_ctx_values0 = len(semi_ctx_values.s0)
-            semi_ctx_values.s2 = len_semi_ctx_values0
-            if len_semi_ctx_values0 > 0:
+            semi_ctx_values.s2 = len(semi_ctx_values.s0)
+            if len(semi_ctx_values.s0) > 0:
                 new_crossed_values.append(semi_ctx_values)
-                if left_or_right == 0 and semi_ctx_values.s1 == len_semi_ctx_values0:
+                if left_or_right == 0 and semi_ctx_values.s1 == len(semi_ctx_values.s0):
                     for ctx_id in semi_ctx_values.s3.itervalues():
                         ctx_values = self.ctxs_values_list[ctx_id]
 
@@ -200,12 +199,12 @@ class ContextOperator(object):
 
                             if right_semi_ctx_values.s1 == right_semi_ctx_values.s2:
                                 ctx_values.c2 += 1
-                                active_ctxs.append(ActiveCtx(ctx_id, ctx_values.c2, ctx_values.c5, ctx_values.c6))
+                                active_ctxs.append(ActiveCtx(ctx_id, ctx_values.c2, ctx_values.left_hash, ctx_values.right_hash))
 
-                            elif ctx_values.c4 and new_ctx_flag and left_semi_ctx_values.s2 <= self.max_left_semi_ctxs_length:
+                            elif ctx_values.zerolevel and new_ctx_flag and left_semi_ctx_values.s2 <= self.max_left_semi_ctxs_length:
                                 potential_new_ctx_list.append((tuple(left_semi_ctx_values.s0), tuple(right_semi_ctx_values.s0)))
 
-                    elif ctx_values.c4 and new_ctx_flag and right_semi_ctx_values.s2 > 0 and left_semi_ctx_values.s2 <= self.max_left_semi_ctxs_length:
+                    elif ctx_values.zerolevel and new_ctx_flag and right_semi_ctx_values.s2 > 0 and left_semi_ctx_values.s2 <= self.max_left_semi_ctxs_length:
                         potential_new_ctx_list.append((tuple(left_semi_ctx_values.s0), tuple(right_semi_ctx_values.s0)))
 
         self.new_ctx_id = False
