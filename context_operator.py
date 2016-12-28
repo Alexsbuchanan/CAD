@@ -92,11 +92,11 @@ class ContextOperator(object):
                 next_semi_ctx_number = len(half.facts_hash_to_semi_ctx_id)
                 semi_ctx_id = half.facts_hash_to_semi_ctx_id.setdefault(hash_, next_semi_ctx_number)
                 if semi_ctx_id == next_semi_ctx_number:
-                    semi_ctx_values = SemiCtx([], len(facts), {} if half == self.left else None)
-                    half.semi_ctx_values_list.append(semi_ctx_values)
+                    semi_ctx = SemiCtx([], len(facts), {} if half == self.left else None)
+                    half.semi_ctx_values_list.append(semi_ctx)
                     for fact in facts:
                         semi_ctx_list = half.fact_to_semi_ctx.setdefault(fact, [])
-                        semi_ctx_list.append(semi_ctx_values)
+                        semi_ctx_list.append(semi_ctx)
                 return semi_ctx_id
 
             lsemi_ctx_id = process_half(left_facts, left_hash, self.left)
@@ -107,17 +107,17 @@ class ContextOperator(object):
 
             if ctx_id == next_free_ctx_id_number:
                 num_added_ctxs += 1
-                ctx_values = Ctx(0, 0, 0, right_facts, zerolevel, left_hash, right_hash)
+                ctx = Ctx(0, 0, 0, right_facts, zerolevel, left_hash, right_hash)
 
-                self.ctxs_values_list.append(ctx_values)
+                self.ctxs_values_list.append(ctx)
                 if zerolevel:
                     self.new_ctx_id = ctx_id
                     return True
             else:
-                ctx_values = self.ctxs_values_list[ctx_id]
+                ctx = self.ctxs_values_list[ctx_id]
 
                 if zerolevel:
-                    ctx_values.zerolevel = 1
+                    ctx.zerolevel = 1
                     return False
 
         return num_added_ctxs
@@ -137,37 +137,37 @@ class ContextOperator(object):
 
         semi = self.choose_half(left_or_right)
 
-        for semi_ctx_values in semi.crossed_semi_ctxs_list:
-            semi_ctx_values.facts = []
+        for semi_ctx in semi.crossed_semi_ctxs_list:
+            semi_ctx.facts = []
 
         for fact in facts_list:
-            for semi_ctx_values in semi.fact_to_semi_ctx.get(fact, []):
-                semi_ctx_values.facts.append(fact)
+            for semi_ctx in semi.fact_to_semi_ctx.get(fact, []):
+                semi_ctx.facts.append(fact)
 
-        new_crossed_values = []
+        new_crossed_semi_ctxs = []
 
-        for semi_ctx_values in semi.semi_ctx_values_list:
-            if len(semi_ctx_values.facts) > 0:
-                new_crossed_values.append(semi_ctx_values)
-                if left_or_right == 0 and semi_ctx_values.init_nfacts == len(semi_ctx_values.facts):
-                    for ctx_id in semi_ctx_values.rsemi_ctx_id_to_ctx_id.itervalues():
-                        ctx_values = self.ctxs_values_list[ctx_id]
+        for semi_ctx in semi.semi_ctx_values_list:
+            if len(semi_ctx.facts) > 0:
+                new_crossed_semi_ctxs.append(semi_ctx)
+                if left_or_right == 0 and semi_ctx.init_nfacts == len(semi_ctx.facts):
+                    for ctx_id in semi_ctx.rsemi_ctx_id_to_ctx_id.itervalues():
+                        ctx = self.ctxs_values_list[ctx_id]
 
-                        curr_pred_weight = ctx_values.c1 / float(ctx_values.c0) if ctx_values.c0 > 0 else 0.0
+                        curr_pred_weight = ctx.c1 / float(ctx.c0) if ctx.c0 > 0 else 0.0
 
                         if curr_pred_weight > max_pred_weight:
                             max_pred_weight = curr_pred_weight
-                            prediction_ctxs = [ctx_values]
+                            prediction_ctxs = [ctx]
 
                         elif curr_pred_weight == max_pred_weight:
-                            prediction_ctxs.append(ctx_values)
+                            prediction_ctxs.append(ctx)
 
-        semi.crossed_semi_ctxs_list = new_crossed_values
+        semi.crossed_semi_ctxs_list = new_crossed_semi_ctxs
 
         if left_or_right:
             return self.update_ctxs_and_get_active(new_ctx_flag)
         else:
-            [new_predictions.update(ctx_values.right_facts) for ctx_values in prediction_ctxs]
+            [new_predictions.update(ctx.right_facts) for ctx in prediction_ctxs]
 
             return num_new_ctxs, new_predictions
 
@@ -203,29 +203,29 @@ class ContextOperator(object):
 
         potential_new_ctx_list = []
 
-        for lsemi_ctx_values in self.left.crossed_semi_ctxs_list:
-            for rsemi_ctx_id, ctx_id in lsemi_ctx_values.rsemi_ctx_id_to_ctx_id.iteritems():
+        for lsemi_ctx in self.left.crossed_semi_ctxs_list:
+            for rsemi_ctx_id, ctx_id in lsemi_ctx.rsemi_ctx_id_to_ctx_id.iteritems():
 
                 if self.new_ctx_id != ctx_id:
-                    ctx_values = self.ctxs_values_list[ctx_id]
-                    rsemi_ctx_values = self.right.semi_ctx_values_list[rsemi_ctx_id]
+                    ctx = self.ctxs_values_list[ctx_id]
+                    rsemi_ctx = self.right.semi_ctx_values_list[rsemi_ctx_id]
 
-                    if lsemi_ctx_values.init_nfacts == len(lsemi_ctx_values.facts):
+                    if lsemi_ctx.init_nfacts == len(lsemi_ctx.facts):
                         num_selected_ctx += 1
-                        ctx_values.c0 += rsemi_ctx_values.init_nfacts
+                        ctx.c0 += rsemi_ctx.init_nfacts
 
-                        if len(rsemi_ctx_values.facts) > 0:
-                            ctx_values.c1 += len(rsemi_ctx_values.facts)
+                        if len(rsemi_ctx.facts) > 0:
+                            ctx.c1 += len(rsemi_ctx.facts)
 
-                            if rsemi_ctx_values.init_nfacts == len(rsemi_ctx_values.facts):
-                                ctx_values.c2 += 1
-                                active_ctxs.append(ActiveCtx(ctx_id, ctx_values.c2))
+                            if rsemi_ctx.init_nfacts == len(rsemi_ctx.facts):
+                                ctx.c2 += 1
+                                active_ctxs.append(ActiveCtx(ctx_id, ctx.c2))
 
-                            elif ctx_values.zerolevel and new_ctx_flag and len(lsemi_ctx_values.facts) <= self.max_lsemi_ctxs_len:
-                                potential_new_ctx_list.append((tuple(lsemi_ctx_values.facts), tuple(rsemi_ctx_values.facts)))
+                            elif ctx.zerolevel and new_ctx_flag and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
+                                potential_new_ctx_list.append((tuple(lsemi_ctx.facts), tuple(rsemi_ctx.facts)))
 
-                    elif ctx_values.zerolevel and new_ctx_flag and len(rsemi_ctx_values.facts) > 0 and len(lsemi_ctx_values.facts) <= self.max_lsemi_ctxs_len:
-                        potential_new_ctx_list.append((tuple(lsemi_ctx_values.facts), tuple(rsemi_ctx_values.facts)))
+                    elif ctx.zerolevel and new_ctx_flag and len(rsemi_ctx.facts) > 0 and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
+                        potential_new_ctx_list.append((tuple(lsemi_ctx.facts), tuple(rsemi_ctx.facts)))
 
         self.new_ctx_id = False
 
