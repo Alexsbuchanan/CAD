@@ -23,7 +23,7 @@ import recordclass
 
 Half = recordclass.recordclass('Half', 'facts_dict semi_ctx_dict semi_ctx_values_list crossed_semi_ctxs_list')
 
-Ctx = recordclass.recordclass('Ctx', 'c0 c1 c2 c3 zerolevel left_hash right_hash')
+Ctx = recordclass.recordclass('Ctx', 'c0 c1 c2 right_facts zerolevel left_hash right_hash')
 SemiCtx = recordclass.recordclass('SemiCtx', 's0 s1 s2 s3')
 ActiveCtx = recordclass.recordclass('ActiveCtx', 'ctx_id a1 left_hash right_hash')
 
@@ -147,7 +147,7 @@ class ContextOperator(object):
         if left_or_right:
             return self.update_ctxs_and_get_active(new_ctx_flag)
         else:
-            [new_predictions.update(ctx_values.c3) for ctx_values in prediction_ctxs]
+            [new_predictions.update(ctx_values.right_facts) for ctx_values in prediction_ctxs]
 
             return num_new_ctxs, new_predictions
 
