@@ -63,7 +63,7 @@ class ContextOperator(object):
     def _choose_half(self, left_or_right):
         return self.left if left_or_right == 0 else self.right
 
-    def get_ctx_by_facts(self, new_ctxs_list, zerolevel):
+    def get_ctx_by_facts(self, new_ctxs, zerolevel):
         """
         The function which determines by the complete facts list whether the context
         is already saved to the memory. If the context is not found the function
@@ -71,9 +71,9 @@ class ContextOperator(object):
         the contexts are divided into semi-contexts as several contexts can contain
         the same facts set in its left and right parts.
 
-        @param new_ctxs_list:       list of potentially new contexts
+        @param new_ctxs:       list of potentially new contexts
 
-        @param zerolevel:           flag indicating the context type in transmitted list
+        @param zerolevel:      flag indicating the context type in transmitted list
 
         @return :   depending on the type of  potentially new context transmitted as
                     an input parameters the function returns either:
@@ -84,7 +84,7 @@ class ContextOperator(object):
 
         num_added_ctxs = 0
 
-        for left_facts, right_facts in new_ctxs_list:
+        for left_facts, right_facts in new_ctxs:
             left_hash = hash(left_facts)
             right_hash = hash(right_facts)
 
@@ -95,8 +95,8 @@ class ContextOperator(object):
                     semi_ctx = SemiCtx([], len(facts), {} if half == self.left else None)
                     half.semi_ctxs.append(semi_ctx)
                     for fact in facts:
-                        semi_ctx_list = half.fact_to_semi_ctx.setdefault(fact, [])
-                        semi_ctx_list.append(semi_ctx)
+                        semi_ctxs = half.fact_to_semi_ctx.setdefault(fact, [])
+                        semi_ctxs.append(semi_ctx)
                 return semi_ctx_id
 
             lsemi_ctx_id = process_half(left_facts, left_hash, self.left)
@@ -122,7 +122,7 @@ class ContextOperator(object):
 
         return num_added_ctxs
 
-    def cross_ctxs(self, left_or_right, facts_list, new_ctx_flag=False, potential_new_ctxs=None):
+    def cross_ctxs(self, left_or_right, facts, new_ctx_flag=False, potential_new_ctxs=None):
         if potential_new_ctxs is None:
             potential_new_ctxs = []
 
@@ -140,7 +140,7 @@ class ContextOperator(object):
         for semi_ctx in semi.crossed_semi_ctxs:
             semi_ctx.facts = []
 
-        for fact in facts_list:
+        for fact in facts:
             for semi_ctx in semi.fact_to_semi_ctx.get(fact, []):
                 semi_ctx.facts.append(fact)
 

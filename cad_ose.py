@@ -55,7 +55,7 @@ class ContextualAnomalyDetector(object):
 
         active_ctxs, num_selected_ctx, potential_new_ctx_list = self.ctx_operator.cross_ctxs(
                                                                             left_or_right=1,
-                                                                            facts_list=input_facts,
+                                                                            facts=input_facts,
                                                                             new_ctx_flag=new_ctx_flag
                                                                         )
 
@@ -74,7 +74,7 @@ class ContextualAnomalyDetector(object):
 
         num_new_ctxs, new_predictions = self.ctx_operator.cross_ctxs(
                                                         left_or_right=0,
-                                                        facts_list=self.left_facts_group,
+                                                        facts=self.left_facts_group,
                                                         potential_new_ctxs=potential_new_ctx_list
                                                     )
 
