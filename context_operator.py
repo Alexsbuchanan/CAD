@@ -40,7 +40,7 @@ Ctx = recordclass.recordclass('Ctx', [
 
 SemiCtx = recordclass.recordclass('SemiCtx', [
     'facts',
-    's1',
+    'init_nfacts',
     's2',
     'rsemi_ctx_id_to_ctx_id'
 ])
@@ -154,7 +154,7 @@ class ContextOperator(object):
             semi_ctx_values.s2 = len(semi_ctx_values.facts)
             if semi_ctx_values.s2 > 0:
                 new_crossed_values.append(semi_ctx_values)
-                if left_or_right == 0 and semi_ctx_values.s1 == semi_ctx_values.s2:
+                if left_or_right == 0 and semi_ctx_values.init_nfacts == semi_ctx_values.s2:
                     for ctx_id in semi_ctx_values.rsemi_ctx_id_to_ctx_id.itervalues():
                         ctx_values = self.ctxs_values_list[ctx_id]
 
@@ -215,14 +215,14 @@ class ContextOperator(object):
                     ctx_values = self.ctxs_values_list[ctx_id]
                     rsemi_ctx_values = self.right.semi_ctx_values_list[rsemi_ctx_id]
 
-                    if lsemi_ctx_values.s1 == lsemi_ctx_values.s2:
+                    if lsemi_ctx_values.init_nfacts == lsemi_ctx_values.s2:
                         num_selected_ctx += 1
-                        ctx_values.c0 += rsemi_ctx_values.s1
+                        ctx_values.c0 += rsemi_ctx_values.init_nfacts
 
                         if rsemi_ctx_values.s2 > 0:
                             ctx_values.c1 += rsemi_ctx_values.s2
 
-                            if rsemi_ctx_values.s1 == rsemi_ctx_values.s2:
+                            if rsemi_ctx_values.init_nfacts == rsemi_ctx_values.s2:
                                 ctx_values.c2 += 1
                                 active_ctxs.append(ActiveCtx(ctx_id, ctx_values.c2, ctx_values.left_hash, ctx_values.right_hash))
 
