@@ -24,7 +24,7 @@ import recordclass
 Half = recordclass.recordclass('Half', 'facts_dict semi_ctx_dict semi_ctx_values_list crossed_semi_ctxs_list')
 
 Ctx = recordclass.recordclass('Ctx', 'c0 c1 c2 right_facts zerolevel left_hash right_hash')
-SemiCtx = recordclass.recordclass('SemiCtx', 's0 s1 s2 s3')
+SemiCtx = recordclass.recordclass('SemiCtx', 's0 s1 s2 right_semi_ctx_id_to_ctx_id')
 ActiveCtx = recordclass.recordclass('ActiveCtx', 'ctx_id a1 left_hash right_hash')
 
 
@@ -81,7 +81,7 @@ class ContextOperator(object):
             right_semi_ctx_id = process_half(right_facts, right_hash, self.right)
 
             next_free_ctx_id_number = len(self.ctxs_values_list)
-            ctx_id = self.left.semi_ctx_values_list[left_semi_ctx_id].s3.setdefault(right_semi_ctx_id, next_free_ctx_id_number)
+            ctx_id = self.left.semi_ctx_values_list[left_semi_ctx_id].right_semi_ctx_id_to_ctx_id.setdefault(right_semi_ctx_id, next_free_ctx_id_number)
 
             if ctx_id == next_free_ctx_id_number:
                 num_added_ctxs += 1
@@ -127,10 +127,10 @@ class ContextOperator(object):
 
         for semi_ctx_values in semi.semi_ctx_values_list:
             semi_ctx_values.s2 = len(semi_ctx_values.s0)
-            if len(semi_ctx_values.s0) > 0:
+            if semi_ctx_values.s2 > 0:
                 new_crossed_values.append(semi_ctx_values)
-                if left_or_right == 0 and semi_ctx_values.s1 == len(semi_ctx_values.s0):
-                    for ctx_id in semi_ctx_values.s3.itervalues():
+                if left_or_right == 0 and semi_ctx_values.s1 == semi_ctx_values.s2:
+                    for ctx_id in semi_ctx_values.right_semi_ctx_id_to_ctx_id.itervalues():
                         ctx_values = self.ctxs_values_list[ctx_id]
 
                         curr_pred_weight = ctx_values.c1 / float(ctx_values.c0) if ctx_values.c0 > 0 else 0.0
@@ -184,7 +184,7 @@ class ContextOperator(object):
         potential_new_ctx_list = []
 
         for left_semi_ctx_values in self.left.crossed_semi_ctxs_list:
-            for right_semi_ctx_id, ctx_id in left_semi_ctx_values.s3.iteritems():
+            for right_semi_ctx_id, ctx_id in left_semi_ctx_values.right_semi_ctx_id_to_ctx_id.iteritems():
 
                 if self.new_ctx_id != ctx_id:
                     ctx_values = self.ctxs_values_list[ctx_id]
