@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # -----------------------------------------------------------------------------
 
+import collections
 import recordclass
 
 
@@ -44,7 +45,7 @@ SemiCtx = recordclass.recordclass('SemiCtx', [
     'rsemi_ctx_id_to_ctx_id'
 ])
 
-ActiveCtx = recordclass.recordclass('ActiveCtx', [
+ActiveCtx = collections.namedtuple('ActiveCtx', [
     'ctx_id',
     'ctx_c2'
 ])
