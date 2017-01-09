@@ -26,7 +26,7 @@ Half = recordclass.recordclass('Half', [
     'fact_to_semi_ctx',             # fact => semi ctx (which was created with it)
     'facts_hash_to_semi_ctx_id',    # facts hash => semi ctx ids (sequential integers)
     'semi_ctxs',                    # semi ctx id => semi ctx
-    'crossed_semi_ctxs'             # subset of semi_ctxs with len(.facts) > 0
+    'crossed_semi_ctxs',            # subset of semi_ctxs with len(.facts) > 0
 ])
 
 Ctx = recordclass.recordclass('Ctx', [
@@ -36,18 +36,18 @@ Ctx = recordclass.recordclass('Ctx', [
     'right_facts',
     'zerolevel',
     'left_hash',
-    'right_hash'
+    'right_hash',
 ])
 
 SemiCtx = recordclass.recordclass('SemiCtx', [
     'facts',
     'init_nfacts',
-    'rsemi_ctx_id_to_ctx_id'
+    'rsemi_ctx_id_to_ctx_id',
 ])
 
 ActiveCtx = collections.namedtuple('ActiveCtx', [
     'ctx_id',
-    'ctx_c2'
+    'ctx_c2',
 ])
 
 
@@ -165,12 +165,12 @@ class ContextOperator(object):
 
         semi.crossed_semi_ctxs = new_crossed_semi_ctxs
 
-        if left_or_right:
-            return self._update_ctxs_and_get_active(new_ctx_flag)
-        else:
+        if left_or_right == 0:
             [new_predictions.update(ctx.right_facts) for ctx in prediction_ctxs]
 
             return num_new_ctxs, new_predictions
+        else:
+            return self._update_ctxs_and_get_active(new_ctx_flag)
 
     def _update_ctxs_and_get_active(self, new_ctx_flag):
         """
