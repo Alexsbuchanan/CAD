@@ -23,10 +23,10 @@ import recordclass
 
 
 Half = recordclass.recordclass('Half', [
-    'fact_to_semi_ctx',
-    'facts_hash_to_semi_ctx_id',
-    'semi_ctxs',  # index == semi_ctx_id
-    'crossed_semi_ctxs'
+    'fact_to_semi_ctx',             # fact => semi ctx (which was created with it)
+    'facts_hash_to_semi_ctx_id',    # facts hash => semi ctx ids (sequential integers)
+    'semi_ctxs',                    # semi ctx id => semi ctx
+    'crossed_semi_ctxs'             # subset of semi_ctxs with len(.facts) > 0
 ])
 
 Ctx = recordclass.recordclass('Ctx', [
