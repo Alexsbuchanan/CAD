@@ -53,8 +53,7 @@ class ContextualAnomalyDetector(object):
             pot_new_zero_level_ctx = False
             new_ctx_flag = False
 
-        active_ctxs, num_selected_ctx, potential_new_ctx_list = self.ctx_operator.cross_ctxs(
-                                                                            left_or_right=1,
+        active_ctxs, num_selected_ctx, potential_new_ctx_list = self.ctx_operator.cross_ctxs_right(
                                                                             facts=input_facts,
                                                                             new_ctx_flag=new_ctx_flag
                                                                         )
@@ -72,8 +71,7 @@ class ContextualAnomalyDetector(object):
         self.left_facts_group.update(input_facts, curr_neur_facts)
         self.left_facts_group = tuple(sorted(self.left_facts_group))
 
-        num_new_ctxs, new_predictions = self.ctx_operator.cross_ctxs(
-                                                        left_or_right=0,
+        num_new_ctxs, new_predictions = self.ctx_operator.cross_ctxs_left(
                                                         facts=self.left_facts_group,
                                                         potential_new_ctxs=potential_new_ctx_list
                                                     )
