@@ -115,12 +115,12 @@ class ContextOperator(object):
         return active_ctxs, num_selected_ctx, potential_new_ctxs
 
     def cross_ctxs_left(self, facts, potential_new_ctxs):
+        _prepare_crossed_semi_ctxs(self.left, facts)
+
         num_new_ctxs = self.get_ctx_by_facts(potential_new_ctxs, zerolevel=0)
         max_pred_weight = 0.0
         new_predictions = set()
         prediction_ctxs = []
-
-        _prepare_crossed_semi_ctxs(self.left, facts)
 
         for semi_ctx in self.left.semi_ctxs:
             if 0 < len(semi_ctx.facts) == semi_ctx.init_nfacts:
