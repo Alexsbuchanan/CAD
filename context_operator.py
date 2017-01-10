@@ -128,10 +128,7 @@ class ContextOperator(object):
             potential_new_ctxs = []
 
         if left_or_right == 0:
-            if len(potential_new_ctxs) > 0:
-                num_new_ctxs = self.get_ctx_by_facts(potential_new_ctxs, zerolevel=0)
-            else:
-                num_new_ctxs = 0
+            num_new_ctxs = self.get_ctx_by_facts(potential_new_ctxs, zerolevel=0)
             max_pred_weight = 0.0
             new_predictions = set()
             prediction_ctxs = []
