@@ -51,6 +51,23 @@ ActiveCtx = collections.namedtuple('ActiveCtx', [
 ])
 
 
+def _prepare_crossed_semi_ctxs(semi, facts):
+    for semi_ctx in semi.crossed_semi_ctxs:
+        semi_ctx.facts = []
+
+    for fact in facts:
+        for semi_ctx in semi.fact_to_semi_ctx.get(fact, []):
+            semi_ctx.facts.append(fact)
+
+    new_crossed_semi_ctxs = []
+
+    for semi_ctx in semi.semi_ctxs:
+        if len(semi_ctx.facts) > 0:
+            new_crossed_semi_ctxs.append(semi_ctx)
+
+    semi.crossed_semi_ctxs = new_crossed_semi_ctxs
+
+
 class ContextOperator(object):
     def __init__(self, max_lsemi_ctxs_len):
         self.max_lsemi_ctxs_len = max_lsemi_ctxs_len
@@ -62,22 +79,7 @@ class ContextOperator(object):
         self.new_ctx_id = False
 
     def cross_ctxs_right(self, facts, new_ctx_flag):
-        semi = self.right
-
-        for semi_ctx in semi.crossed_semi_ctxs:
-            semi_ctx.facts = []
-
-        for fact in facts:
-            for semi_ctx in semi.fact_to_semi_ctx.get(fact, []):
-                semi_ctx.facts.append(fact)
-
-        new_crossed_semi_ctxs = []
-
-        for semi_ctx in semi.semi_ctxs:
-            if len(semi_ctx.facts) > 0:
-                new_crossed_semi_ctxs.append(semi_ctx)
-
-        semi.crossed_semi_ctxs = new_crossed_semi_ctxs
+        _prepare_crossed_semi_ctxs(self.right, facts)
 
         active_ctxs = []
         num_selected_ctx = 0
@@ -118,34 +120,21 @@ class ContextOperator(object):
         new_predictions = set()
         prediction_ctxs = []
 
-        semi = self.left
+        _prepare_crossed_semi_ctxs(self.left, facts)
 
-        for semi_ctx in semi.crossed_semi_ctxs:
-            semi_ctx.facts = []
+        for semi_ctx in self.left.semi_ctxs:
+            if 0 < len(semi_ctx.facts) == semi_ctx.init_nfacts:
+                for ctx_id in semi_ctx.rsemi_ctx_id_to_ctx_id.itervalues():
+                    ctx = self.ctxs[ctx_id]
 
-        for fact in facts:
-            for semi_ctx in semi.fact_to_semi_ctx.get(fact, []):
-                semi_ctx.facts.append(fact)
+                    curr_pred_weight = ctx.c1 / float(ctx.c0) if ctx.c0 > 0 else 0.0
 
-        new_crossed_semi_ctxs = []
+                    if curr_pred_weight > max_pred_weight:
+                        max_pred_weight = curr_pred_weight
+                        prediction_ctxs = [ctx]
 
-        for semi_ctx in semi.semi_ctxs:
-            if len(semi_ctx.facts) > 0:
-                new_crossed_semi_ctxs.append(semi_ctx)
-                if semi_ctx.init_nfacts == len(semi_ctx.facts):
-                    for ctx_id in semi_ctx.rsemi_ctx_id_to_ctx_id.itervalues():
-                        ctx = self.ctxs[ctx_id]
-
-                        curr_pred_weight = ctx.c1 / float(ctx.c0) if ctx.c0 > 0 else 0.0
-
-                        if curr_pred_weight > max_pred_weight:
-                            max_pred_weight = curr_pred_weight
-                            prediction_ctxs = [ctx]
-
-                        elif curr_pred_weight == max_pred_weight:
-                            prediction_ctxs.append(ctx)
-
-        semi.crossed_semi_ctxs = new_crossed_semi_ctxs
+                    elif curr_pred_weight == max_pred_weight:
+                        prediction_ctxs.append(ctx)
 
         for ctx in prediction_ctxs:
             new_predictions.update(ctx.right_facts)
