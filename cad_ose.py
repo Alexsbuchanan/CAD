@@ -46,19 +46,14 @@ class ContextualAnomalyDetector(object):
         self.result_values_history = [1.0]
 
     def step(self, input_facts):  # input_facts must be distinct and sorted
-        if len(self.left_facts_group) > 0 and len(input_facts) > 0:
-            pot_new_zero_level_ctx = (self.left_facts_group, input_facts)
-            new_ctx_flag = self.ctx_operator.get_ctx_by_facts([pot_new_zero_level_ctx], zerolevel=1)
-        else:
-            pot_new_zero_level_ctx = False
-            new_ctx_flag = False
+        pot_new_zero_level_ctx = [(self.left_facts_group, input_facts)] if self.left_facts_group and input_facts else []
 
-        active_ctxs, num_selected_ctx, potential_new_ctx_list = self.ctx_operator.cross_ctxs_right(
-                                                                            facts=input_facts,
-                                                                            new_ctx_flag=new_ctx_flag
-                                                                        )
+        active_ctxs, num_selected_ctx, potential_new_ctx_list, new_ctx_flag = self.ctx_operator.cross_ctxs_right(
+                                                                        facts=input_facts,
+                                                                        pot_new_zero_level_ctx=pot_new_zero_level_ctx
+                                                                    )
 
-        num_uniq_pot_new_ctx = len(set(potential_new_ctx_list).union([pot_new_zero_level_ctx]) if pot_new_zero_level_ctx else set(potential_new_ctx_list))
+        num_uniq_pot_new_ctx = len(set(potential_new_ctx_list).union(pot_new_zero_level_ctx))
 
         percent_selected_ctx_active = len(active_ctxs) / float(num_selected_ctx) if num_selected_ctx > 0 else 0.0
 

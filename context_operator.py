@@ -78,12 +78,12 @@ class ContextOperator(object):
 
         self.new_ctx_id = False
 
-    def cross_ctxs_right(self, facts, new_ctx_flag):
+    def cross_ctxs_right(self, facts, pot_new_zero_level_ctx):
         _prepare_crossed_semi_ctxs(self.right, facts)
 
+        new_ctx_flag = self._get_ctx_by_facts(pot_new_zero_level_ctx, zerolevel=1)
         active_ctxs = []
         num_selected_ctx = 0
-
         potential_new_ctxs = []
 
         for lsemi_ctx in self.left.crossed_semi_ctxs:
@@ -112,12 +112,12 @@ class ContextOperator(object):
 
         self.new_ctx_id = False
 
-        return active_ctxs, num_selected_ctx, potential_new_ctxs
+        return active_ctxs, num_selected_ctx, potential_new_ctxs, new_ctx_flag
 
     def cross_ctxs_left(self, facts, potential_new_ctxs):
         _prepare_crossed_semi_ctxs(self.left, facts)
 
-        num_new_ctxs = self.get_ctx_by_facts(potential_new_ctxs, zerolevel=0)
+        num_new_ctxs = self._get_ctx_by_facts(potential_new_ctxs, zerolevel=0)
         max_pred_weight = 0.0
         new_predictions = set()
         prediction_ctxs = []
@@ -141,7 +141,7 @@ class ContextOperator(object):
 
         return num_new_ctxs, new_predictions
 
-    def get_ctx_by_facts(self, new_ctxs, zerolevel):
+    def _get_ctx_by_facts(self, new_ctxs, zerolevel):
         num_added_ctxs = 0
 
         for left_facts, right_facts in new_ctxs:
