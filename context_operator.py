@@ -59,7 +59,7 @@ def _prepare_crossed_semi_ctxs(semi, facts):
         for semi_ctx in semi.fact_to_semi_ctx.get(fact, []):
             semi_ctx.facts.append(fact)
 
-    semi.crossed_semi_ctxs = [semi_ctx for semi_ctx in semi.semi_ctxs if len(semi_ctx.facts) > 0]
+    semi.crossed_semi_ctxs = [semi_ctx for semi_ctx in semi.semi_ctxs if semi_ctx.facts]
 
 
 class ContextOperator(object):
@@ -91,7 +91,7 @@ class ContextOperator(object):
                         num_selected_ctx += 1
                         ctx.c0 += rsemi_ctx.init_nfacts
 
-                        if len(rsemi_ctx.facts) > 0:
+                        if rsemi_ctx.facts:
                             ctx.c1 += len(rsemi_ctx.facts)
 
                             if rsemi_ctx.init_nfacts == len(rsemi_ctx.facts):
@@ -101,7 +101,7 @@ class ContextOperator(object):
                             elif ctx.zerolevel and new_ctx_flag and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
                                 potential_new_ctxs.append((tuple(lsemi_ctx.facts), tuple(rsemi_ctx.facts)))
 
-                    elif ctx.zerolevel and new_ctx_flag and len(rsemi_ctx.facts) > 0 and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
+                    elif ctx.zerolevel and new_ctx_flag and rsemi_ctx.facts and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
                         potential_new_ctxs.append((tuple(lsemi_ctx.facts), tuple(rsemi_ctx.facts)))
 
         self.new_ctx_id = False
