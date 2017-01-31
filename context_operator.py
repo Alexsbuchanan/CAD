@@ -51,15 +51,15 @@ ActiveCtx = collections.namedtuple('ActiveCtx', [
 ])
 
 
-def _prepare_crossed_semi_ctxs(semi, facts):
-    for semi_ctx in semi.crossed_semi_ctxs:
+def _prepare_crossed_semi_ctxs(half, facts):
+    for semi_ctx in half.crossed_semi_ctxs:
         semi_ctx.facts = []
 
     for fact in facts:
-        for semi_ctx in semi.fact_to_semi_ctx.get(fact, []):
+        for semi_ctx in half.fact_to_semi_ctx.get(fact, []):
             semi_ctx.facts.append(fact)
 
-    semi.crossed_semi_ctxs = [semi_ctx for semi_ctx in semi.semi_ctxs if semi_ctx.facts]
+    half.crossed_semi_ctxs = [semi_ctx for semi_ctx in half.semi_ctxs if semi_ctx.facts]
 
 
 class ContextOperator(object):
