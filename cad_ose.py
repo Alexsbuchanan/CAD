@@ -48,12 +48,12 @@ class ContextualAnomalyDetector(object):
     def step(self, input_facts):  # input_facts must be distinct and sorted
         pot_new_zero_level_ctx = [(self.left_facts_group, input_facts)] if self.left_facts_group and input_facts else []
 
-        active_ctxs, num_selected_ctx, potential_new_ctx_list, new_ctx_flag = self.ctx_operator.cross_ctxs_right(
+        active_ctxs, num_selected_ctx, potential_new_ctxs, new_ctx_flag = self.ctx_operator.cross_ctxs_right(
                                                                         facts=input_facts,
                                                                         pot_new_zero_level_ctx=pot_new_zero_level_ctx
                                                                     )
 
-        num_uniq_pot_new_ctx = len(set(potential_new_ctx_list).union(pot_new_zero_level_ctx))
+        num_uniq_pot_new_ctx = len(set(potential_new_ctxs).union(pot_new_zero_level_ctx))
 
         percent_selected_ctx_active = len(active_ctxs) / float(num_selected_ctx) if num_selected_ctx > 0 else 0.0
 
@@ -68,7 +68,7 @@ class ContextualAnomalyDetector(object):
 
         num_new_ctxs, new_predictions = self.ctx_operator.cross_ctxs_left(
                                                         facts=self.left_facts_group,
-                                                        potential_new_ctxs=potential_new_ctx_list
+                                                        potential_new_ctxs=potential_new_ctxs
                                                     )
 
         num_new_ctxs += 1 if new_ctx_flag else 0
