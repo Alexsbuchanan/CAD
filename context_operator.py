@@ -35,8 +35,6 @@ Ctx = recordclass.recordclass('Ctx', [
     'num_activations',
     'right_facts',
     'zerolevel',
-    'left_hash',
-    'right_hash',
 ])
 
 SemiCtx = recordclass.recordclass('SemiCtx', [
@@ -159,7 +157,7 @@ class ContextOperator(object):
 
             if ctx_id == next_free_ctx_id_number:
                 num_added_ctxs += 1
-                ctx = Ctx(0, 0, 0, right_facts, zerolevel, left_hash, right_hash)
+                ctx = Ctx(0, 0, 0, right_facts, zerolevel)
 
                 self.ctxs.append(ctx)
                 if zerolevel:
