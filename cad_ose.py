@@ -45,11 +45,11 @@ class ContextualAnomalyDetector(object):
         self.last_predicted_facts = []
         self.result_values_history = [1.0]
 
-    def step(self, input_facts):  # input_facts must be distinct and sorted
-        pot_new_zero_level_ctx = [(self.left_facts_group, input_facts)] if self.left_facts_group and input_facts else []
+    def step(self, facts):  # facts must be distinct and sorted
+        pot_new_zero_level_ctx = [(self.left_facts_group, facts)] if self.left_facts_group and facts else []
 
         active_ctxs, num_selected_ctx, potential_new_ctxs, new_ctx_flag = self.ctx_operator.cross_ctxs_right(
-                                                                        facts=input_facts,
+                                                                        facts=facts,
                                                                         pot_new_zero_level_ctx=pot_new_zero_level_ctx
                                                                     )
 
@@ -63,7 +63,7 @@ class ContextualAnomalyDetector(object):
         curr_neur_facts = set(2 ** 31 + fact for fact in active_neurons)
 
         self.left_facts_group = set()
-        self.left_facts_group.update(input_facts, curr_neur_facts)
+        self.left_facts_group.update(facts, curr_neur_facts)
         self.left_facts_group = tuple(sorted(self.left_facts_group))
 
         num_new_ctxs, new_predictions = self.ctx_operator.cross_ctxs_left(
@@ -81,11 +81,10 @@ class ContextualAnomalyDetector(object):
         norm_input_value = int((input_data['value'] - self.min_value) / self.min_value_step)
         bin_input_norm_value = bin(norm_input_value).lstrip('0b').rjust(self.num_norm_value_bits, '0')
 
-        out_sens = tuple(2**16 + s_num * 2 + (1 if cur_sym == '1' else 0) for s_num, cur_sym in enumerate(reversed(bin_input_norm_value)))
+        facts = tuple(2**16 + s_num * 2 + (1 if cur_sym == '1' else 0) for s_num, cur_sym in enumerate(reversed(bin_input_norm_value)))
+        prediction_error = sum(2 ** ((fact-65536) / 2.0) for fact in facts if fact not in self.last_predicted_facts) / self.max_bin_value
 
-        prediction_error = sum(2 ** ((fact-65536) / 2.0) for fact in out_sens if fact not in self.last_predicted_facts) / self.max_bin_value
-
-        self.last_predicted_facts, anomaly_values = self.step(out_sens)
+        self.last_predicted_facts, anomaly_values = self.step(facts)
 
         current_anomaly_score = (1.0 - anomaly_values[0] + anomaly_values[1]) / 2.0 if prediction_error > 0 else 0.0
 
