@@ -57,7 +57,7 @@ class ContextualAnomalyDetector(object):
 
         percent_selected_ctx_active = len(active_ctxs) / float(num_selected_ctx) if num_selected_ctx > 0 else 0.0
 
-        active_ctxs = sorted(active_ctxs, key=lambda ctx: ctx.ctx_c2)
+        active_ctxs = sorted(active_ctxs, key=lambda ctx: ctx.ctx_num_activations)
         active_neurons = [actx.ctx_id for actx in active_ctxs[-self.max_active_neurons_num:]]
 
         curr_neur_facts = set(2 ** 31 + fact for fact in active_neurons)

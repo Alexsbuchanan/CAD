@@ -32,7 +32,7 @@ Half = recordclass.recordclass('Half', [
 Ctx = recordclass.recordclass('Ctx', [
     'c0',
     'c1',
-    'c2',
+    'num_activations',
     'right_facts',
     'zerolevel',
     'left_hash',
@@ -47,7 +47,7 @@ SemiCtx = recordclass.recordclass('SemiCtx', [
 
 ActiveCtx = collections.namedtuple('ActiveCtx', [
     'ctx_id',
-    'ctx_c2',
+    'ctx_num_activations',
 ])
 
 
@@ -95,8 +95,8 @@ class ContextOperator(object):
                             ctx.c1 += len(rsemi_ctx.facts)
 
                             if rsemi_ctx.init_nfacts == len(rsemi_ctx.facts):
-                                ctx.c2 += 1
-                                active_ctxs.append(ActiveCtx(ctx_id, ctx.c2))
+                                ctx.num_activations += 1
+                                active_ctxs.append(ActiveCtx(ctx_id, ctx.num_activations))
 
                             elif ctx.zerolevel and num_new_ctxs and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
                                 potential_new_ctxs.append((tuple(lsemi_ctx.facts), tuple(rsemi_ctx.facts)))
