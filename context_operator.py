@@ -59,13 +59,7 @@ def _prepare_crossed_semi_ctxs(semi, facts):
         for semi_ctx in semi.fact_to_semi_ctx.get(fact, []):
             semi_ctx.facts.append(fact)
 
-    new_crossed_semi_ctxs = []
-
-    for semi_ctx in semi.semi_ctxs:
-        if len(semi_ctx.facts) > 0:
-            new_crossed_semi_ctxs.append(semi_ctx)
-
-    semi.crossed_semi_ctxs = new_crossed_semi_ctxs
+    semi.crossed_semi_ctxs = [semi_ctx for semi_ctx in semi.semi_ctxs if len(semi_ctx.facts) > 0]
 
 
 class ContextOperator(object):
