@@ -113,7 +113,6 @@ class ContextOperator(object):
 
         num_new_ctxs = self._get_ctx_by_facts(potential_new_ctxs, zerolevel=False)
         max_pred_weight = 0.0
-        new_predictions = set()
         prediction_ctxs = []
 
         for semi_ctx in self.left.semi_ctxs:
@@ -130,8 +129,7 @@ class ContextOperator(object):
                     elif curr_pred_weight == max_pred_weight:
                         prediction_ctxs.append(ctx)
 
-        for ctx in prediction_ctxs:
-            new_predictions.update(ctx.right_facts)
+        new_predictions = set(fact for ctx in prediction_ctxs for fact in ctx.right_facts)
 
         return num_new_ctxs, new_predictions
 
