@@ -60,7 +60,7 @@ class ContextualAnomalyDetector(object):
         active_ctxs = sorted(active_ctxs, key=lambda ctx: ctx.ctx_num_activations)
         active_neurons = [actx.ctx_id for actx in active_ctxs[-self.max_active_neurons_num:]]
 
-        curr_neur_facts = set(2 ** 31 + fact for fact in active_neurons)
+        curr_neur_facts = set(2**31 + fact for fact in active_neurons)
 
         self.left_facts_group = set()
         self.left_facts_group.update(facts, curr_neur_facts)
