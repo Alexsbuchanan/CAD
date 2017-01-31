@@ -75,7 +75,7 @@ class ContextOperator(object):
     def cross_ctxs_right(self, facts, pot_new_zero_level_ctx):
         _prepare_crossed_semi_ctxs(self.right, facts)
 
-        new_ctx_flag = self._get_ctx_by_facts(pot_new_zero_level_ctx, zerolevel=True)
+        num_new_ctxs = self._get_ctx_by_facts(pot_new_zero_level_ctx, zerolevel=True)
         active_ctxs = []
         num_selected_ctx = 0
         potential_new_ctxs = []
@@ -98,15 +98,15 @@ class ContextOperator(object):
                                 ctx.c2 += 1
                                 active_ctxs.append(ActiveCtx(ctx_id, ctx.c2))
 
-                            elif ctx.zerolevel and new_ctx_flag and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
+                            elif ctx.zerolevel and num_new_ctxs and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
                                 potential_new_ctxs.append((tuple(lsemi_ctx.facts), tuple(rsemi_ctx.facts)))
 
-                    elif ctx.zerolevel and new_ctx_flag and rsemi_ctx.facts and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
+                    elif ctx.zerolevel and num_new_ctxs and rsemi_ctx.facts and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
                         potential_new_ctxs.append((tuple(lsemi_ctx.facts), tuple(rsemi_ctx.facts)))
 
         self.new_ctx_id = False
 
-        return active_ctxs, num_selected_ctx, potential_new_ctxs, new_ctx_flag
+        return active_ctxs, num_selected_ctx, potential_new_ctxs, num_new_ctxs
 
     def cross_ctxs_left(self, facts, potential_new_ctxs):
         _prepare_crossed_semi_ctxs(self.left, facts)
@@ -166,13 +166,11 @@ class ContextOperator(object):
                 self.ctxs.append(ctx)
                 if zerolevel:
                     self.new_ctx_id = ctx_id
-                    return True
             else:
                 ctx = self.ctxs[ctx_id]
 
                 if zerolevel:
                     ctx.zerolevel = True
-                    return False
 
         return num_added_ctxs
 
