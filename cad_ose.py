@@ -81,8 +81,8 @@ class ContextualAnomalyDetector(object):
         norm_input_value = int((input_data['value'] - self.min_value) / self.min_value_step)
         bin_input_norm_value = bin(norm_input_value).lstrip('0b').rjust(self.num_norm_value_bits, '0')
 
-        facts = tuple(2**16 + s_num * 2 + (1 if cur_sym == '1' else 0) for s_num, cur_sym in enumerate(reversed(bin_input_norm_value)))
-        prediction_error = sum(2 ** ((fact-65536) / 2.0) for fact in facts if fact not in self.last_predicted_facts) / self.max_bin_value
+        facts = tuple(s_num * 2 + (1 if cur_sym == '1' else 0) for s_num, cur_sym in enumerate(reversed(bin_input_norm_value)))
+        prediction_error = sum(2 ** (fact / 2.0) for fact in facts if fact not in self.last_predicted_facts) / self.max_bin_value
 
         self.last_predicted_facts, anomaly_values = self.step(facts)
 
