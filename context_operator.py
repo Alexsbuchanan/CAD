@@ -88,16 +88,14 @@ class ContextOperator(object):
                     if len(lsemi_ctx.facts) == lsemi_ctx.init_nfacts:
                         num_selected_ctx += 1
                         ctx.c0 += rsemi_ctx.init_nfacts
+                        ctx.c1 += len(rsemi_ctx.facts)
 
-                        if rsemi_ctx.facts:
-                            ctx.c1 += len(rsemi_ctx.facts)
+                        if len(rsemi_ctx.facts) == rsemi_ctx.init_nfacts:
+                            ctx.num_activations += 1
+                            active_ctxs.append(ActiveCtx(ctx_id, ctx.num_activations))
 
-                            if len(rsemi_ctx.facts) == rsemi_ctx.init_nfacts:
-                                ctx.num_activations += 1
-                                active_ctxs.append(ActiveCtx(ctx_id, ctx.num_activations))
-
-                            elif ctx.zerolevel and num_new_ctxs and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
-                                potential_new_ctxs.append((tuple(lsemi_ctx.facts), tuple(rsemi_ctx.facts)))
+                        elif ctx.zerolevel and num_new_ctxs and rsemi_ctx.facts and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
+                            potential_new_ctxs.append((tuple(lsemi_ctx.facts), tuple(rsemi_ctx.facts)))
 
                     elif ctx.zerolevel and num_new_ctxs and rsemi_ctx.facts and len(lsemi_ctx.facts) <= self.max_lsemi_ctxs_len:
                         potential_new_ctxs.append((tuple(lsemi_ctx.facts), tuple(rsemi_ctx.facts)))
