@@ -113,9 +113,9 @@ class ContextOperator(object):
         max_pred_weight = 0.0
         prediction_ctxs = []
 
-        for semi_ctx in self.left.semi_ctxs:
-            if 0 < len(semi_ctx.facts) == semi_ctx.init_nfacts:
-                for ctx_id in semi_ctx.rsemi_ctx_id_to_ctx_id.itervalues():
+        for lsemi_ctx in self.left.semi_ctxs:
+            if 0 < len(lsemi_ctx.facts) == lsemi_ctx.init_nfacts:
+                for ctx_id in lsemi_ctx.rsemi_ctx_id_to_ctx_id.itervalues():
                     ctx = self.ctxs[ctx_id]
 
                     curr_pred_weight = ctx.c1 / float(ctx.c0) if ctx.c0 > 0 else 0.0
@@ -166,4 +166,3 @@ class ContextOperator(object):
                 semi_ctxs = half.fact_to_semi_ctx.setdefault(fact, [])
                 semi_ctxs.append(semi_ctx)
         return semi_ctx_id
-
