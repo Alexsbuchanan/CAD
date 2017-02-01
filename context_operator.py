@@ -81,18 +81,18 @@ class ContextOperator(object):
         for lsemi_ctx in self.left.crossed_semi_ctxs:
             for rsemi_ctx_id, ctx_id in lsemi_ctx.rsemi_ctx_id_to_ctx_id.iteritems():
 
-                if self.new_ctx_id != ctx_id:
+                if ctx_id != self.new_ctx_id:
                     ctx = self.ctxs[ctx_id]
                     rsemi_ctx = self.right.semi_ctxs[rsemi_ctx_id]
 
-                    if lsemi_ctx.init_nfacts == len(lsemi_ctx.facts):
+                    if len(lsemi_ctx.facts) == lsemi_ctx.init_nfacts:
                         num_selected_ctx += 1
                         ctx.c0 += rsemi_ctx.init_nfacts
 
                         if rsemi_ctx.facts:
                             ctx.c1 += len(rsemi_ctx.facts)
 
-                            if rsemi_ctx.init_nfacts == len(rsemi_ctx.facts):
+                            if len(rsemi_ctx.facts) == rsemi_ctx.init_nfacts:
                                 ctx.num_activations += 1
                                 active_ctxs.append(ActiveCtx(ctx_id, ctx.num_activations))
 
@@ -142,15 +142,13 @@ class ContextOperator(object):
             ctx_id = self.left.semi_ctxs[lsemi_ctx_id].rsemi_ctx_id_to_ctx_id.setdefault(rsemi_ctx_id, next_free_ctx_id_number)
 
             if ctx_id == next_free_ctx_id_number:
-                num_added_ctxs += 1
                 ctx = Ctx(0, 0, 0, right_facts, zerolevel)
-
                 self.ctxs.append(ctx)
+                num_added_ctxs += 1
                 if zerolevel:
                     self.new_ctx_id = ctx_id
             else:
                 ctx = self.ctxs[ctx_id]
-
                 if zerolevel:
                     ctx.zerolevel = True
 
