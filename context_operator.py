@@ -135,7 +135,7 @@ class ContextOperator(object):
         num_added_ctxs = 0
 
         for left_facts, right_facts in new_ctxs:
-            def process_half(facts, half):
+            def process_half(half, facts):
                 next_semi_ctx_number = len(half.facts_hash_to_semi_ctx_id)
                 semi_ctx_id = half.facts_hash_to_semi_ctx_id.setdefault(hash(facts), next_semi_ctx_number)
                 if semi_ctx_id == next_semi_ctx_number:
@@ -146,8 +146,8 @@ class ContextOperator(object):
                         semi_ctxs.append(semi_ctx)
                 return semi_ctx_id
 
-            lsemi_ctx_id = process_half(left_facts, self.left)
-            rsemi_ctx_id = process_half(right_facts, self.right)
+            lsemi_ctx_id = process_half(self.left, left_facts)
+            rsemi_ctx_id = process_half(self.right, right_facts)
 
             next_free_ctx_id_number = len(self.ctxs)
             ctx_id = self.left.semi_ctxs[lsemi_ctx_id].rsemi_ctx_id_to_ctx_id.setdefault(rsemi_ctx_id, next_free_ctx_id_number)
