@@ -20,56 +20,65 @@
 
 import datetime
 import math
-import sys
+import pandas as pd
+import numpy as np
 
 from cad_ose import ContextualAnomalyDetector
 
 
 def main():
-    nrows = int(sys.argv[1])
-    min_ = float(sys.argv[2])
-    max_ = float(sys.argv[3])
+
+
 
     base_threshold = 0.75
     max_lsemi_ctxs_len = 7
     max_active_neurons_num = 15
-    num_norm_value_bits = 3
+    num_norm_value_bits = 8
 
-    run(nrows=nrows,
-        min_=min_,
-        max_=max_,
+    run(nrows=2500,
+        min_=0,
+        max_=100,
         base_threshold=base_threshold,
         max_lsemi_ctxs_len=max_lsemi_ctxs_len,
         max_active_neurons_num=max_active_neurons_num,
         num_norm_value_bits=num_norm_value_bits)
 
 
-def run(nrows, min_, max_, base_threshold, max_lsemi_ctxs_len, max_active_neurons_num, num_norm_value_bits):
-    learning_period = min(math.floor(0.15 * nrows), 0.15 * 5000)
+def run(nrows, min_, max_,
+        base_threshold,
+        max_lsemi_ctxs_len,
+        max_active_neurons_num,
+        num_norm_value_bits):
 
+    # how much we want to learn before we care about good scores
+    # learning_period = min(math.floor(0.15 * nrows), 0.15 * 5000)
+    # rest_period = learning_period/5.0
     cad = ContextualAnomalyDetector(
         min_value=min_,
         max_value=max_,
         base_threshold=base_threshold,
-        rest_period=learning_period / 5.0,
+        rest_period=14,
         max_lsemi_ctxs_len=max_lsemi_ctxs_len,
         max_active_neurons_num=max_active_neurons_num,
         num_norm_value_bits=num_norm_value_bits
     )
 
-    sys.stdin.readline()
+    with open('dummy1.csv') as file:
+        data = pd.read_csv(file)
 
-    for line in sys.stdin:
-        row = line.split(',')
+    score = []
+    values = data['value'].values
+    print(max(values), bin(int(max(values))), len(bin(int(max(values)))))
+    print(min(values), bin(int(min(values))), len(bin(int(min(values)))))
+    for line in values:
+        score.append(cad.get_anomaly_score(line))
 
-        input_data = {
-            'timestamp': datetime.datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S'),
-            'value':     float(row[1]),
-        }
+    print(cad.get_anomaly_score(100))
 
-        score = cad.get_anomaly_score(input_data)
-
-        print '{},{},{}'.format(row[0].strip(), row[1].strip(), score)
+    import matplotlib.pyplot as plt
+    plt.plot(np.arange(len(values)), values/max(values), c='r')
+    plt.plot(np.arange(len(values)), score, c='b', alpha=0.5)
+    plt.show()
 
 
 if __name__ == '__main__':
