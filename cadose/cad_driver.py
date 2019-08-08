@@ -18,22 +18,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # -----------------------------------------------------------------------------
 
-import datetime
-import math
 import pandas as pd
 import numpy as np
 
-from cad_ose import ContextualAnomalyDetector
+from cadose.cad_ose import ContextualAnomalyDetector
 
 
 def main():
-
-
-
     base_threshold = 0.75
+    rest_period = 1
     max_lsemi_ctxs_len = 7
     max_active_neurons_num = 15
-    num_norm_value_bits = 8
+    num_norm_value_bits = 10
 
     run(nrows=2500,
         min_=0,
@@ -41,29 +37,31 @@ def main():
         base_threshold=base_threshold,
         max_lsemi_ctxs_len=max_lsemi_ctxs_len,
         max_active_neurons_num=max_active_neurons_num,
-        num_norm_value_bits=num_norm_value_bits)
+        num_norm_value_bits=num_norm_value_bits,
+        rest_period=rest_period)
 
 
 def run(nrows, min_, max_,
         base_threshold,
         max_lsemi_ctxs_len,
         max_active_neurons_num,
-        num_norm_value_bits):
+        num_norm_value_bits,
+        rest_period):
 
     # how much we want to learn before we care about good scores
     # learning_period = min(math.floor(0.15 * nrows), 0.15 * 5000)
     # rest_period = learning_period/5.0
     cad = ContextualAnomalyDetector(
-        min_value=min_,
-        max_value=max_,
-        base_threshold=base_threshold,
-        rest_period=14,
+        min_value=min_,  # Minimum value allowed by the system
+        max_value=max_,  # Maximum value allowed by the system
+        base_threshold=base_threshold,  # Base threshold to alert on
+        rest_period=rest_period,  # Duration we wait before next alert
         max_lsemi_ctxs_len=max_lsemi_ctxs_len,
         max_active_neurons_num=max_active_neurons_num,
         num_norm_value_bits=num_norm_value_bits
     )
 
-    with open('dummy1.csv') as file:
+    with open('anomalydata/dummy2.csv') as file:
         data = pd.read_csv(file)
 
     score = []
@@ -73,7 +71,7 @@ def run(nrows, min_, max_,
     for line in values:
         score.append(cad.get_anomaly_score(line))
 
-    print(cad.get_anomaly_score(100))
+    print(cad.get_avg_time())
 
     import matplotlib.pyplot as plt
     plt.plot(np.arange(len(values)), values/max(values), c='r')

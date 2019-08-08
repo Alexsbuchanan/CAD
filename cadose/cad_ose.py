@@ -19,15 +19,36 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # -----------------------------------------------------------------------------
 
-from context_operator import ContextOperator
-
+from timeit import default_timer as timer
+from cadose.context_operator import ContextOperator
+import numpy as np
 
 class ContextualAnomalyDetector(object):
     def __init__(self, min_value, max_value, base_threshold, rest_period,
                  max_lsemi_ctxs_len, max_active_neurons_num,
                  num_norm_value_bits):
         """
-        TODO Figure out what this is
+        This class is used to first train the detector based on facts and
+        contexts of previous known data.
+        min_value and max_value are used to compute the min_value_step param
+        which is then used to scale the input appropriately. Note that I we
+        have a general sense of what the minimum and maximum values our data
+        might have it may very well be worth it to assign these parameters
+        correctly.
+
+        For example if we are looking at CPU usage as a percentage, the optimal
+        values for min and max value are 0 and 100 respectively.
+
+        The base threshold here is used as a threshold in conjunction with
+        the rest period to determine if we should alert about an anomaly again.
+        I.e it really is just a way to aid in preventing alert fatigue or
+        sending alerts about events that are already know repeatedly.
+
+        The maximum left semi contexts is TODO: find out what max_lsemi_ctx_len
+                                                is
+        Max active neurons is a cap on the neurons that max be activated at
+        any given time. Num norm value bits controls
+
         :param min_value: Minimum value in the data set TODO Verify this
         :param max_value: Maximum value in the data set TODO Verify this
         :param base_threshold: The base threshold to declare an anomaly
@@ -66,6 +87,8 @@ class ContextualAnomalyDetector(object):
 
         # DEBUG
         self.flags = []
+
+        self.avg_time = []
 
     def step(self, facts):  # facts must be distinct and sorted
         """
@@ -154,26 +177,22 @@ class ContextualAnomalyDetector(object):
                 potential_new_ctxs=potential_new_ctxs
         )
 
-        # TODO: new_ctx_flag is set to false and returned when the cross ctx
-        #  operator is called. Is there a point to it? It appears to always be
-        #  false
         # If the cross_ctxs_right returns new_ctx_flag >= 1, add one to
         # num_new ctxs
         num_new_ctxs += 1 if new_ctx_flag else 0
 
         # Get the percentage added to the unique potential new contexts
         if new_ctx_flag and num_uniq_pot_new_ctx > 0:
-            # TODO: Rename this garbage variable...
-            pct_added_ctx_to_uniq_pot_new = num_new_ctxs / float(
+            pct_pot_uniq_ctx_new = num_new_ctxs / float(
                     num_uniq_pot_new_ctx)
         else:
-            pct_added_ctx_to_uniq_pot_new = 0.0
+            pct_pot_uniq_ctx_new = 0.0
 
         # DEBUG
         self.flags.append(new_ctx_flag)
 
         return new_predictions, (
-                pct_selected_ctx_active, pct_added_ctx_to_uniq_pot_new)
+                pct_selected_ctx_active, pct_pot_uniq_ctx_new)
 
     def get_anomaly_score(self, input_data):
         """
@@ -190,15 +209,19 @@ class ContextualAnomalyDetector(object):
         :param input_data: A numeric value representative of the data
         :return: float, and anomaly score.
         """
-        # Get the normal input value, subtract the minimum value it can take
-        # and integer divide by the minimum value step
+        start = timer()
+
+        # Min-max scale the normal input value and scale it by the maximum
+        # binary value
         norm_input_value = int((input_data - self.min_value)
                                / self.min_value_step)
+
+        # TODO: Add support for negative values
 
         # Conver the normal input value to a bianry string representation
         # strip the '0b' and add zeros on the left up to the number of normal
         # value bits
-        bin_input_norm_value = bin(norm_input_value).lstrip('0b').rjust(
+        bin_input_norm_value = format(norm_input_value, 'b').rjust(
                 self.num_norm_value_bits, '0')
 
         # Create the 'facts' which is a tuple derived from the sorted input
@@ -208,13 +231,12 @@ class ContextualAnomalyDetector(object):
         # Also note the original implementation had some 'magic' where the line
         # would be ... s_num * 2 ** 16 ... and in prediction error below
         # it would be ... 2 ** ((fact - 2**16)/2.0).
-        # TODO Check to see if that 'magic' affects the encoding accuracy...
         # facts = tuple(
-        #         s_num * 2 + (1 if cur_sym == '1' else 0) for s_num, cur_sym in
+        #         s_num * 2 + (1 if cur_sym == '1' else 0) for s_num, cursym in
         #         enumerate(reversed(bin_input_norm_value)))
         facts = tuple(
-                set(65536 + s_num*2*+ int(cur_sym) for s_num, cur_sym in
-                enumerate(reversed(bin_input_norm_value))))
+                set(65536 + s_num * 2 * + int(cur_sym) for s_num, cur_sym in
+                    enumerate(reversed(bin_input_norm_value))))
 
         # Sum the prediction error for all facts that weren't just predicted
         # Note it is then scaled by the maximum binary value
@@ -226,17 +248,26 @@ class ContextualAnomalyDetector(object):
         self.last_predicted_facts, anomaly_values = self.step(facts)
 
         # Calculate the anomaly score for this individual value
-        current_anomaly_score = (1.0 - anomaly_values[0] + anomaly_values[
-            1]) / 2.0 if prediction_error > 0 else 0.0
+        # if prediction_error > 0:
+        current_anomaly_score = (1.0 - anomaly_values[0]
+                                 + anomaly_values[1]) / 2.0
+        # else:
+        #     current_anomaly_score = 0.0
 
-        if max(self.result_values_history[-int(self.rest_period):]) < self.base_threshold:
+        if max(self.result_values_history[
+               -int(self.rest_period):]) < self.base_threshold:
             returned_anomaly_score = current_anomaly_score
         else:
             returned_anomaly_score = 0.0
 
-        # returned_anomaly_score = current_anomaly_score if max(self.result_values_history[-int(self.rest_period):]) < self.base_threshold else 0.0
-
         self.result_values_history.append(current_anomaly_score)
 
+        # if returned_anomaly_score < self.base_threshold / 2.0:
+        #     returned_anomaly_score = 0.0
+
+        self.avg_time.append(timer() - start)
         # return current_anomaly_score
         return returned_anomaly_score
+
+    def get_avg_time(self):
+        return np.mean(self.avg_time)

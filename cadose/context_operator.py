@@ -51,11 +51,19 @@ ActiveCtx = collections.namedtuple('ActiveCtx', [
 
 
 def _prepare_crossed_semi_ctxs(half, facts):
+    """
+    Reassigns the facts for each semi context
+    :param half:
+    :param facts:
+    :return:
+    """
     # Erase cross semi contexts
     for semi_ctx in half.crossed_semi_ctxs:
         semi_ctx.facts = []
 
     # For every fact append it to every semi contexts fact attribute
+    # Here we get every fact that we wish to assign to a semi context from
+    # from that half and give to the semi context
     for fact in facts:
         for semi_ctx in half.fact_to_semi_ctx.get(fact, []):
             semi_ctx.facts.append(fact)
